@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowUltraTech — Multi-Instance & Automation</title>
+  <meta name="description" content="FlowUltraTech โปรแกรมรัน TikTok LIVE Studio หลายบัญชีพร้อมกัน แยก Proxy อิสระ 100% พร้อมระบบแก้ Captcha อัตโนมัติด้วย AI และโหมดประหยัด GPU สูงสุด 85%" />
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="FlowUltraTech" />
+  <meta property="og:description" content="FlowUltraTech รัน TikTok LIVE Studio ได้หลายจอพร้อมกัน แยกเน็ตอิสระ 100% พร้อม AI ช่วยแก้แคปช่า" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', 'Outfit', 'system-ui', 'sans-serif'],
+            display: ['Outfit', '"Noto Sans Thai"', 'sans-serif'],
+          },
+          colors: {
+            neon: {
+              cyan: '#00f2fe',
+              blue: '#4facfe',
+              rose: '#fe2c55',
+              crimson: '#ff0050',
+            }
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float-slow': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.03)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #06070a; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+    /* Cyber Glow & Tonal Surfaces */
+    .glow-cyan {
+      box-shadow: 0 0 50px -12px rgba(0, 242, 254, 0.4);
+    }
+    .text-glow-cyan {
+      text-shadow: 0 0 30px rgba(0, 242, 254, 0.6);
+    }
+    .cyber-surface {
+      background: rgba(14, 15, 20, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cyber-surface:hover {
+      border-color: rgba(0, 242, 254, 0.28);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px -12px rgba(0, 242, 254, 0.18);
+    }
+    .gradient-border-btn {
+      position: relative;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 40%, #fe2c55 100%);
+      padding: 1.5px;
+      border-radius: 1.15rem;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .gradient-border-btn:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 0 45px rgba(0, 242, 254, 0.45), 0 0 25px rgba(254, 44, 85, 0.35);
+    }
+
+    /* Scroll-Driven Reveal Animations */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(30px) scale(0.97);
+      filter: blur(4px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                  filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform, filter;
+    }
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0px);
+    }
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+    .delay-400 { transition-delay: 400ms; }
+  </style>
+</head>
+
+<body class="bg-[#06070a] text-zinc-100 font-sans min-h-screen relative overflow-x-hidden selection:bg-[#fe2c55]/30 selection:text-white">
+
+  <!-- Top Neon Cyber Scroll Progress Bar -->
+  <div class="fixed top-0 left-0 right-0 h-[2.5px] z-[60] pointer-events-none bg-transparent">
+    <div id="scrollProgressBar" class="h-full w-0 bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] shadow-[0_0_10px_rgba(0,242,254,0.8)] transition-all duration-75 ease-out"></div>
+  </div>
+
+  <!-- High-Tech Cyberpunk Page Load Transition -->
+  <div id="pageLoader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#06070a] transition-all duration-700 ease-out select-none">
+    <!-- Ambient Neon Cyber Glow -->
+    <div class="absolute w-[500px] h-[500px] bg-gradient-to-tr from-[#00f2fe]/20 via-transparent to-[#fe2c55]/20 rounded-full blur-[130px] pointer-events-none"></div>
+
+    <!-- Scanline Subtle Texture Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none opacity-30"></div>
+
+    <div class="relative z-10 flex flex-col items-center text-center px-4 max-w-sm w-full">
+      <!-- Animated Hologram Logo Box -->
+      <div class="relative mb-6">
+        <!-- Dual Glowing Rings -->
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#fe2c55] via-[#00f2fe] to-[#fe2c55] p-[2px] shadow-[0_0_50px_rgba(0,242,254,0.45)] animate-spin" style="animation-duration: 9s;">
+          <div class="w-full h-full bg-[#07090e] rounded-[14px]"></div>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg class="w-9 h-9 text-white drop-shadow-[0_0_12px_rgba(0,242,254,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+            <polygon points="10 8 15 10 10 12 10 8" fill="#00f2fe" stroke="none" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- App Title & Cyber Badge -->
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="font-display font-black text-xl tracking-tight text-white">
+          FlowUltraTech
+        </span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00f2fe] border border-cyan-500/30">
+          STUDIO
+        </span>
+      </div>
+
+      <!-- Status Readout (Cyber HUD style) -->
+      <div class="flex items-center justify-between w-full max-w-[260px] text-[11px] font-mono text-zinc-400 mb-2 mt-4">
+        <span id="loaderStatusText" class="tracking-wide text-cyan-400 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+          INITIALIZING...
+        </span>
+        <span id="loaderPercentText" class="text-zinc-200 font-bold">0%</span>
+      </div>
+
+      <!-- Neon Progress Track & Bar -->
+      <div class="w-full max-w-[260px] h-1.5 bg-zinc-900/90 rounded-full overflow-hidden border border-zinc-800/80 p-[0.5px]">
+        <div id="loaderProgressBar" class="h-full bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] rounded-full transition-all duration-100 ease-out shadow-[0_0_15px_rgba(0,242,254,0.8)]" style="width: 0%"></div>
+      </div>
+
+      <!-- Micro Architecture Subtext -->
+      <div class="mt-4 text-[10px] font-mono tracking-wider text-zinc-500">
+        MULTI-INSTANCE &bull; PROXY ISOLATION &bull; AI SOLVER
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Toast Feedback -->
+  <div id="downloadToast" class="fixed bottom-6 right-6 z-[130] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#0e1017]/95 border border-cyan-500/40 shadow-[0_10px_40px_rgba(0,242,254,0.25)] backdrop-blur-xl">
+    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00f2fe] to-[#fe2c55] flex items-center justify-center text-white shadow-md">
+      <svg class="w-4 h-4 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+    </div>
+    <div>
+      <div class="text-xs font-bold text-white">กำลังเริ่มดาวน์โหลด...</div>
+      <div class="text-[11px] text-zinc-400">ระบบกำลังส่งไฟล์ตัวติดตั้ง โปรดรอสักครู่</div>
+    </div>
+  </div>
+
+  <!-- Modal: Download Versions (ตั้งแต่ ver ที่บังคับ -> ver ล่าสุด) -->
+  <div id="versionsModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 opacity-0 pointer-events-none transition-all duration-300 ease-out" role="dialog" aria-modal="true" aria-labelledby="versionsModalTitle">
+    <!-- Backdrop Blur -->
+    <div id="versionsModalBackdrop" class="absolute inset-0 bg-[#040508]/80 backdrop-blur-xl transition-opacity duration-300"></div>
+
+    <!-- Modal Card Surface -->
+    <div class="relative w-full max-w-2xl bg-[#090b11] border border-zinc-800 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_-10px_rgba(0,242,254,0.15)] overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-all duration-300 ease-out">
+      
+      <!-- Top Neon Header Accent Line -->
+      <div class="h-[2px] w-full bg-gradient-to-r from-transparent via-[#00f2fe] to-transparent"></div>
+
+      <!-- Header: Title + Close Button -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-zinc-800/80 bg-[#0c0e16]/60">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00f2fe]">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 id="versionsModalTitle" class="font-display font-bold text-base sm:text-lg text-white">
+              ประวัติเวอร์ชันและไฟล์ติดตั้ง
+            </h3>
+            <p class="text-xs text-zinc-400 mt-0.5">
+              เวอร์ชันที่รองรับ: <span class="text-cyan-400 font-medium version-range-text">v0.1.0 – v1.0.0</span>
+            </p>
+          </div>
+        </div>
+
+        <button id="closeVersionsModalBtn" class="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-800/80 transition-colors focus:outline-none cursor-pointer" aria-label="ปิดหน้าต่าง">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Info Banner -->
+      <div class="px-6 py-2.5 bg-zinc-900/40 border-b border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-400">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>แสดงเวอร์ชันตั้งแต่ขั้นต่ำที่ระบบบังคับจนถึงเวอร์ชันล่าสุด</span>
+        </span>
+        <span id="versionsCountBadge" class="px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 font-mono text-[10px]">กำลังโหลด...</span>
+      </div>
+
+      <!-- Versions List Container -->
+      <div id="versionsListContainer" class="p-6 overflow-y-auto space-y-3 flex-1">
+        <!-- Skeleton Loading placeholder -->
+        <div class="space-y-3 animate-pulse">
+          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
+          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
+          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 bg-[#07080d] border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
+        <span>รองรับ Windows 10 & 11 (64-bit)</span>
+        <button id="closeVersionsModalFooterBtn" class="px-4 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800/60 hover:bg-zinc-800 transition cursor-pointer">
+          ปิด
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive 60FPS Cyber Canvas Background -->
+  <canvas id="cyberCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-45"></canvas>
+
+  <!-- Ambient Glowing Light Orbs -->
+  <div class="fixed top-[-10%] left-[12%] w-[550px] h-[550px] bg-cyan-500/12 rounded-full blur-[150px] pointer-events-none z-0"></div>
+  <div class="fixed top-[22%] right-[8%] w-[620px] h-[620px] bg-rose-500/10 rounded-full blur-[170px] pointer-events-none z-0"></div>
+  <div class="fixed bottom-[-10%] left-[30%] w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[180px] pointer-events-none z-0"></div>
+
+  <!-- Content Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar: py-2.5 sm:py-3 -->
+    <header class="sticky top-0 z-50 border-b border-zinc-800/60 bg-[#06070a]/85 backdrop-blur-2xl py-2.5 sm:py-3 transition-all">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[58px]">
+        
+        <!-- Brand Logo -->
+        <a href="/" class="flex items-center gap-3.5 group">
+          <div class="relative w-11 h-11 rounded-xl bg-gradient-to-tr from-[#fe2c55] via-zinc-800 to-[#00f2fe] p-[1.5px] shadow-lg shadow-[#00f2fe]/25 group-hover:shadow-[#00f2fe]/50 transition duration-300">
+            <div class="w-full h-full bg-[#090a0f] rounded-[10px] flex items-center justify-center">
+              <svg class="w-5 h-5 text-white transform group-hover:scale-110 transition duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+                <polygon points="10 8 15 10 10 12 10 8" fill="currentColor" stroke="none" />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+                FlowUltraTech
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00f2fe] border border-cyan-500/30">
+                Studio
+              </span>
+            </div>
+            <p class="text-[11px] text-zinc-400 leading-none mt-1 hidden sm:block">
+              Multi-Instance & Automation
+            </p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center gap-1.5 text-xs font-medium text-zinc-300 bg-zinc-950/60 p-1 rounded-xl border border-zinc-800/60">
+          <a href="#features" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">จุดเด่น</a>
+          <a href="#specs" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">สเปกเครื่อง</a>
+          <a href="#guide" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">วิธีเริ่มใช้งาน</a>
+        </nav>
+
+        <!-- Right Quick Download Button -->
+        <div class="flex items-center gap-3">
+          <a href="/api/v1/app/download" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#00f2fe] to-[#4facfe] hover:from-[#4facfe] hover:to-[#00f2fe] text-black font-display font-bold text-xs shadow-md shadow-cyan-500/20 transition duration-300 active:scale-95">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span id="navDownloadVer">ดาวน์โหลด v0.1.0</span>
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+
+      <!-- Hero Section: Clean, Punchy, Focused -->
+      <section class="relative pt-16 sm:pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        
+        <!-- Live Status Pill -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/90 shadow-xl mb-7 animate-float-slow">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs text-zinc-300 font-medium">เวอร์ชันล่าสุด <span class="app-version-tag">v0.1.0</span> • เปิดให้ดาวน์โหลดแล้ว ฟรี ไม่ต้องล็อกอิน</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="reveal-on-scroll text-4xl sm:text-6xl lg:text-7xl font-display font-black tracking-tight leading-[1.08] max-w-5xl mx-auto text-white">
+          รัน TikTok LIVE Studio<br />
+          <span class="bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] bg-clip-text text-transparent text-glow-cyan">
+            หลายจอพร้อมกัน แยกเน็ต 100%
+          </span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="reveal-on-scroll delay-100 mt-5 text-sm sm:text-base lg:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+          เปิดได้ไม่จำกัดบัญชี แยก Proxy รายจอ ป้องกันโดนแบนกลุ่ม พร้อมระบบ AI ช่วยแก้ Captcha สไลเดอร์อัตโนมัติในตัว ไม่ต้องนั่งเฝ้าจอ
+        </p>
+
+        <!-- Primary CTA Download Button -->
+        <div class="reveal-on-scroll delay-200 mt-9 flex flex-col items-center justify-center gap-4">
+          
+          <div class="gradient-border-btn w-full max-w-md shadow-2xl">
+            <a id="heroDownloadBtn" href="/api/v1/app/download" class="flex items-center justify-center gap-4 w-full py-4 sm:py-5 px-6 rounded-[16px] bg-[#090b10] hover:bg-[#0d1017] text-white transition duration-300 group">
+              <!-- Animated Download Icon -->
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#fe2c55] to-[#00f2fe] flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <svg class="w-6 h-6 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </div>
+
+              <div class="text-left">
+                <div class="font-display font-bold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
+                  <span>ดาวน์โหลดสำหรับ Windows</span>
+                </div>
+                <div class="text-xs text-zinc-400 mt-0.5">
+                  เวอร์ชันล่าสุด <span class="app-version-tag">v0.1.0</span> • ขนาด <span id="heroFileSize">51.8 MB</span>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <!-- Small link to open versions modal -->
+          <div class="flex items-center justify-center -mt-1">
+            <button type="button" class="open-versions-modal-btn inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#00f2fe] transition-colors py-1 px-3 rounded-lg hover:bg-zinc-900/80 border border-transparent hover:border-zinc-800/80 cursor-pointer group">
+              <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#00f2fe] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>ดูเวอร์ชันทั้งหมด (<span class="version-range-text">v0.1.0 – v1.0.0</span>)</span>
+              <svg class="w-3 h-3 text-zinc-500 group-hover:text-[#00f2fe] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="reveal-on-scroll delay-300 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-zinc-400 mt-1">
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>รองรับ Windows 10 & 11 (64-bit)</span>
+            </span>
+
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>ดาวน์โหลดตรงความเร็วสูง</span>
+            </span>
+
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>ปลอดภัย ไร้ไวรัส 100%</span>
+            </span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- 4 Core User Benefits -->
+      <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-12">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
+            KEY ADVANTAGES
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
+            ทำไมสตรีมเมอร์ต้องใช้โปรแกรมนี้?
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          
+          <!-- Benefit 1 -->
+          <div class="reveal-on-scroll delay-100 cyber-surface p-6 rounded-2xl">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-[#00f2fe] mb-4">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-white">รันได้ไม่จำกัดจอ</h3>
+            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+              เปิด TikTok LIVE Studio ได้หลายบัญชีพร้อมกันบนเครื่องเดียว แยกโฟลเดอร์อิสระ ไม่ชนกัน
+            </p>
+          </div>
+
+          <!-- Benefit 2 -->
+          <div class="reveal-on-scroll delay-200 cyber-surface p-6 rounded-2xl">
+            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-[#fe2c55] mb-4">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-white">แยกเน็ต Proxy 100%</h3>
+            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+              ใส่ Proxy แยกรายจอได้อิสระ บัญชีไม่ผูกโยงกัน ลดความเสี่ยงในการโดนแบนกลุ่มได้อย่างเด็ดขาด
+            </p>
+          </div>
+
+          <!-- Benefit 3 -->
+          <div class="reveal-on-scroll delay-300 cyber-surface p-6 rounded-2xl">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-white">AI แก้ Captcha ให้เอง</h3>
+            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+              เมื่อติดสไลเดอร์จิ๊กซอว์ ระบบ AI จะคำนวณและเลื่อนให้เสร็จในเสี้ยววินาที ไม่ต้องนั่งเฝ้าจอทั้งวัน
+            </p>
+          </div>
+
+          <!-- Benefit 4 -->
+          <div class="reveal-on-scroll delay-400 cyber-surface p-6 rounded-2xl">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-white">กินสเปกน้อยมาก</h3>
+            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+              ระบบซ่อนหน้าต่างเบื้องหลัง ช่วยลดภาระ GPU ได้ถึง 85% ทำให้รันได้ 10-20 จอเครื่องก็ยังลื่น
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- System Specs: Simple & Clear -->
+      <section id="specs" class="py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
+            SYSTEM SPECS
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
+            สเปกเครื่องที่รองรับ
+          </h2>
+        </div>
+
+        <div class="reveal-on-scroll delay-150 max-w-4xl mx-auto cyber-surface rounded-2xl overflow-hidden border border-zinc-800/80">
+          <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/70 text-xs sm:text-sm">
+            
+            <div class="p-6">
+              <h4 class="font-display font-bold text-white text-sm mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-zinc-500"></span>
+                คอมทั่วไป (1 - 2 จอ)
+              </h4>
+              <ul class="space-y-2 text-zinc-300 text-xs">
+                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 (64-bit)</li>
+                <li><span class="text-zinc-500">ซีพียู:</span> Core i3 / Ryzen 3</li>
+                <li><span class="text-zinc-500">แรม (RAM):</span> 8 GB</li>
+                <li><span class="text-zinc-500">การ์ดจอ:</span> การ์ดจอทั่วไป / On-board</li>
+              </ul>
+            </div>
+
+            <div class="p-6 bg-cyan-950/15">
+              <h4 class="font-display font-bold text-[#00f2fe] text-sm mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#00f2fe]"></span>
+                แนะนำ (5 - 10 จอ)
+              </h4>
+              <ul class="space-y-2 text-zinc-300 text-xs">
+                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 (64-bit)</li>
+                <li><span class="text-zinc-500">ซีพียู:</span> Core i5 / Ryzen 5</li>
+                <li><span class="text-zinc-500">แรม (RAM):</span> 16 GB</li>
+                <li><span class="text-zinc-500">การ์ดจอ:</span> GTX 1650 / RTX 3050</li>
+              </ul>
+            </div>
+
+            <div class="p-6">
+              <h4 class="font-display font-bold text-rose-400 text-sm mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                ฟาร์มสตรีม (15+ จอ)
+              </h4>
+              <ul class="space-y-2 text-zinc-300 text-xs">
+                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 Pro</li>
+                <li><span class="text-zinc-500">ซีพียู:</span> Core i7 / Ryzen 7</li>
+                <li><span class="text-zinc-500">แรม (RAM):</span> 32 GB+</li>
+                <li><span class="text-zinc-500">การ์ดจอ:</span> RTX 3060 ขึ้นไป</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 Simple Steps -->
+      <section id="guide" class="py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
+            HOW TO START
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
+            เริ่มต้นใช้งานง่ายๆ ใน 3 ขั้นตอน
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          
+          <div class="reveal-on-scroll delay-100 cyber-surface p-6 rounded-2xl">
+            <span class="font-display text-2xl font-black text-cyan-400">01</span>
+            <h3 class="font-display font-bold text-white text-sm mt-2">ดาวน์โหลดโปรแกรม</h3>
+            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+              กดปุ่มดาวน์โหลดตัวติดตั้งและกดติดตั้งลงในคอมพิวเตอร์ของคุณ
+            </p>
+          </div>
+
+          <div class="reveal-on-scroll delay-200 cyber-surface p-6 rounded-2xl">
+            <span class="font-display text-2xl font-black text-blue-400">02</span>
+            <h3 class="font-display font-bold text-white text-sm mt-2">เพิ่มบัญชีและใส่ Proxy</h3>
+            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+              เปิดโปรแกรม กดเพิ่มบัญชีที่ต้องการสตรีม และใส่ Proxy แยกรายจอ
+            </p>
+          </div>
+
+          <div class="reveal-on-scroll delay-300 cyber-surface p-6 rounded-2xl">
+            <span class="font-display text-2xl font-black text-rose-400">03</span>
+            <h3 class="font-display font-bold text-white text-sm mt-2">เริ่มสตรีมได้ทันที</h3>
+            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+              กดเปิดสตรีม ระบบจะดูแลเรื่องการแก้แคปช่าและประหยัดเครื่องให้เอง
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Bottom Download Call-To-Action -->
+      <section class="py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
+        <div class="reveal-on-scroll cyber-surface rounded-3xl p-8 sm:p-12 border border-cyan-500/30 glow-cyan relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-rose-500/10 pointer-events-none"></div>
+          
+          <h2 class="text-2xl sm:text-4xl font-display font-black text-white tracking-tight relative z-10">
+            พร้อมเริ่มต้นสตรีมหลายจอแล้วหรือยัง?
+          </h2>
+          <p class="text-zinc-300 text-xs sm:text-sm max-w-lg mx-auto mt-2.5 relative z-10">
+            ดาวน์โหลดโปรแกรมตัวเต็มเวอร์ชันล่าสุดและเริ่มใช้งานได้ทันที
+          </p>
+
+          <div class="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
+            <a href="/api/v1/app/download" class="inline-flex items-center gap-3 px-8 py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-[#00f2fe] to-[#4facfe] hover:from-[#4facfe] hover:to-[#00f2fe] text-black shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition duration-300">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>ดาวน์โหลดสำหรับ Windows</span>
+            </a>
+            <button type="button" class="open-versions-modal-btn inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-cyan-500/40 transition duration-300 cursor-pointer">
+              <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>เลือกเวอร์ชันอื่น ๆ</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer: Clean, Minimal, Non-developer -->
+    <footer class="border-t border-zinc-800/80 bg-[#06070a]/90 py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div>
+          <span>TikTok LIVE Studio Sandbox • สำหรับ Windows 10 & 11 (64-bit)</span>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <a href="#features" class="hover:text-zinc-300 transition">จุดเด่น</a>
+          <a href="#specs" class="hover:text-zinc-300 transition">สเปก</a>
+          <a href="/backoffice" target="_blank" class="text-zinc-600 hover:text-zinc-400 transition text-[11px]">
+            เข้าสู่ระบบผู้ดูแล
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Interactive 60FPS Cyber Canvas Script (Preserved VFX) -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('cyberCanvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let particles = [];
+      const particleCount = 45;
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.vx = (Math.random() - 0.5) * 0.4;
+          this.vy = (Math.random() - 0.5) * 0.4;
+          this.size = Math.random() * 2 + 1;
+          this.color = Math.random() > 0.4 ? 'rgba(0, 242, 254, ' : 'rgba(254, 44, 85, ';
+          this.alpha = Math.random() * 0.5 + 0.1;
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+            this.reset();
+          }
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color + this.alpha + ')';
+          ctx.fill();
+        }
+      }
+
+      function init() {
+        resize();
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+          particles.push(new Particle());
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(0, 242, 254, ${0.12 * (1 - dist / 120)})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+        }
+
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('resize', resize);
+      init();
+      animate();
+    })();
+
+    // Page Load Transition Logic (Cyber Intro Reveal)
+    (function() {
+      const loader = document.getElementById('pageLoader');
+      const bar = document.getElementById('loaderProgressBar');
+      const percent = document.getElementById('loaderPercentText');
+      const status = document.getElementById('loaderStatusText');
+      if (!loader) return;
+
+      let progress = 0;
+      const steps = [
+        { at: 20, text: 'LOADING ASSETS...' },
+        { at: 48, text: 'INITIALIZING PROXY ENGINE...' },
+        { at: 75, text: 'CONFIGURING AI CAPTCHA SOLVER...' },
+        { at: 96, text: 'SYSTEM ARMED ✓' }
+      ];
+
+      const timer = setInterval(() => {
+        progress += Math.floor(Math.random() * 12) + 10;
+        if (progress > 100) progress = 100;
+
+        if (bar) bar.style.width = progress + '%';
+        if (percent) percent.innerText = progress + '%';
+
+        for (let i = steps.length - 1; i >= 0; i--) {
+          if (progress >= steps[i].at && status) {
+            status.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${progress >= 96 ? 'bg-emerald-400' : 'bg-cyan-400 animate-ping'}"></span> ${steps[i].text}`;
+            if (progress >= 96) {
+              status.className = 'tracking-wide text-emerald-400 flex items-center gap-1.5 font-bold';
+            }
+            break;
+          }
+        }
+
+        if (progress >= 100) {
+          clearInterval(timer);
+          setTimeout(() => {
+            loader.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
+            setTimeout(() => {
+              loader.style.display = 'none';
+            }, 700);
+          }, 140);
+        }
+      }, 40);
+
+      // Failsafe exit in case of background tab throttling or delay
+      setTimeout(() => {
+        if (loader && loader.style.display !== 'none') {
+          loader.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
+          setTimeout(() => { loader.style.display = 'none'; }, 700);
+        }
+      }, 1400);
+    })();
+
+    // Download Feedback Toast & Delegation
+    let _downloadToastTimer = null;
+    function showDownloadToast() {
+      const toast = document.getElementById('downloadToast');
+      if (!toast) return;
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      clearTimeout(_downloadToastTimer);
+      _downloadToastTimer = setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    document.addEventListener('click', (e) => {
+      const downloadLink = e.target.closest('a[href*="/api/v1/app/download"]');
+      if (downloadLink) {
+        showDownloadToast();
+      }
+    });
+
+    // Versions Modal State & Handlers
+    let cachedReleasesData = null;
+
+    function openVersionsModal() {
+      const modal = document.getElementById('versionsModal');
+      if (!modal) return;
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      const box = modal.querySelector('.max-w-2xl');
+      if (box) {
+        box.classList.remove('scale-95');
+        box.classList.add('scale-100');
+      }
+      document.body.style.overflow = 'hidden';
+
+      if (!cachedReleasesData) {
+        fetchPublicReleases();
+      } else {
+        renderReleasesList(cachedReleasesData);
+      }
+    }
+
+    function closeVersionsModal() {
+      const modal = document.getElementById('versionsModal');
+      if (!modal) return;
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      const box = modal.querySelector('.max-w-2xl');
+      if (box) {
+        box.classList.remove('scale-100');
+        box.classList.add('scale-95');
+      }
+      document.body.style.overflow = '';
+    }
+
+    // Modal Trigger Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.open-versions-modal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          openVersionsModal();
+        });
+      });
+
+      const closeBtn = document.getElementById('closeVersionsModalBtn');
+      if (closeBtn) closeBtn.addEventListener('click', closeVersionsModal);
+
+      const footerCloseBtn = document.getElementById('closeVersionsModalFooterBtn');
+      if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeVersionsModal);
+
+      const backdrop = document.getElementById('versionsModalBackdrop');
+      if (backdrop) backdrop.addEventListener('click', closeVersionsModal);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeVersionsModal();
+        }
+      });
+    });
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateVersionLabels(minVer, latestVer) {
+      if (minVer && latestVer) {
+        const rangeText = `v${minVer} – v${latestVer}`;
+        document.querySelectorAll('.version-range-text').forEach(el => {
+          el.innerText = rangeText;
+        });
+      }
+      if (latestVer) {
+        document.querySelectorAll('.app-version-tag').forEach(el => {
+          el.innerText = `v${latestVer}`;
+        });
+        const navVer = document.getElementById('navDownloadVer');
+        if (navVer) navVer.innerText = `ดาวน์โหลด v${latestVer}`;
+      }
+    }
+
+    function renderReleasesList(data) {
+      const container = document.getElementById('versionsListContainer');
+      const countBadge = document.getElementById('versionsCountBadge');
+      if (!container) return;
+
+      if (countBadge && data.releases) {
+        countBadge.innerText = `${data.releases.length} เวอร์ชันพร้อมใช้งาน`;
+      }
+
+      if (!data.releases || data.releases.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-xs text-zinc-400">
+            ไม่พบเวอร์ชันที่รองรับในขณะนี้
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = data.releases.map(rel => {
+        const isLatest = Boolean(rel.isLatest);
+        const isMinRequired = Boolean(rel.isMinRequired);
+        const sizeMB = rel.fileSize ? (rel.fileSize / (1024 * 1024)).toFixed(1) : '51.8';
+        const dateStr = rel.publishedAt ? new Date(rel.publishedAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+
+        return `
+          <div class="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/40 border ${isLatest ? 'border-cyan-500/40 shadow-[0_0_25px_-5px_rgba(0,242,254,0.15)] bg-cyan-950/10' : 'border-zinc-800/80'} transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-display font-bold text-base text-white tracking-tight">v${escapeHtml(rel.version)}</span>
+                ${isLatest ? `
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ล่าสุด
+                  </span>
+                ` : ''}
+                ${isMinRequired ? `
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                    ขั้นต่ำที่บังคับ
+                  </span>
+                ` : ''}
+                <span class="text-xs text-zinc-500">• ${sizeMB} MB</span>
+                ${dateStr ? `<span class="text-xs text-zinc-500">• ${dateStr}</span>` : ''}
+              </div>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                ${escapeHtml(rel.description || rel.title || `ไฟล์ติดตั้ง FlowUltraTech v${rel.version}`)}
+              </p>
+            </div>
+
+            <a href="${rel.downloadUrl}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${isLatest ? 'bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-black font-bold shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/40' : 'bg-zinc-800/90 hover:bg-zinc-700 text-white font-medium border border-zinc-700/60'} text-xs transition duration-200 shrink-0 active:scale-95">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>ดาวน์โหลด</span>
+            </a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function fetchPublicReleases() {
+      const container = document.getElementById('versionsListContainer');
+      fetch('/api/v1/app/releases')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success && Array.isArray(data.releases)) {
+            cachedReleasesData = data;
+            updateVersionLabels(data.minRequiredVersion, data.latestVersion);
+            renderReleasesList(data);
+          } else {
+            if (container) {
+              container.innerHTML = `
+                <div class="text-center py-10 text-xs text-zinc-400">
+                  ไม่สามารถโหลดรายการเวอร์ชันได้ในขณะนี้
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(() => {
+          if (container) {
+            container.innerHTML = `
+              <div class="text-center py-10 text-xs text-zinc-400">
+                เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
+              </div>
+            `;
+          }
+        });
+    }
+
+    // Prefetch Releases Metadata on Load
+    fetchPublicReleases();
+
+    // Fetch Latest Release for Hero File Size & Metadata
+    fetch('/api/v1/app/latest-release')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.release) {
+          if (data.release.fileSize) {
+            const sizeMB = (data.release.fileSize / (1024 * 1024)).toFixed(1);
+            const el = document.getElementById('heroFileSize');
+            if (el) el.innerText = `${sizeMB} MB`;
+          }
+          if (data.release.version) {
+            document.querySelectorAll('.app-version-tag').forEach(el => {
+              el.innerText = `v${data.release.version}`;
+            });
+            const navVer = document.getElementById('navDownloadVer');
+            if (navVer) navVer.innerText = `ดาวน์โหลด v${data.release.version}`;
+          }
+        }
+      })
+      .catch(() => {});
+
+    // Scroll Reveal & Neon Scroll Progress Logic
+    (function() {
+      const scrollBar = document.getElementById('scrollProgressBar');
+
+      // Update Scroll Progress Bar
+      function updateScrollProgress() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if (docHeight > 0 && scrollBar) {
+          const progress = (scrollTop / docHeight) * 100;
+          scrollBar.style.width = progress + '%';
+        }
+      }
+      window.addEventListener('scroll', updateScrollProgress, { passive: true });
+      updateScrollProgress();
+
+      // Intersection Observer for Smooth Scroll Reveals
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.08,
+        rootMargin: '0px 0px -40px 0px'
+      });
+
+      function observeElements() {
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+          revealObserver.observe(el);
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeElements);
+      } else {
+        observeElements();
+      }
+
+      // Trigger initial visible elements after pageLoader transition completes
+      setTimeout(() => {
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight) {
+            el.classList.add('is-visible');
+          }
+        });
+      }, 400);
+    })();
+  </script>
+</body>
+</html>

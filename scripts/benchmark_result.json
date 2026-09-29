@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-19T19:48:02Z",
+  "server": "http://210.246.215.66:8001",
+  "iterations": 25,
+  "auth": {
+    "token_length": 293,
+    "role": "superadmin"
+  },
+  "slot": {
+    "lease_id": "lease_5e7828dca0704173bcd230b331aa79f3"
+  },
+  "benchmark": {
+    "total_runs": 25,
+    "success_count": 25,
+    "fail_count": 0,
+    "success_rate_pct": 100.0,
+    "server_calc_ms": {
+      "min": 189.0,
+      "max": 829.0,
+      "avg": 231.16,
+      "median": 203.0
+    },
+    "network_rtt_ms": {
+      "min": 225.18,
+      "max": 864.95,
+      "avg": 268.87,
+      "median": 240.46
+    }
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+images/
+*.log
+
+# Large binary files (exceed GitHub file size limits)
+storage/releases/
+models/
+python/symbol/models/
+python/slide/models/
+backoffice/
+*.exe
+*.onnx
+*.pt
+*.pth
