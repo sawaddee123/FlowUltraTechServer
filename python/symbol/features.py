@@ -46,51 +46,9 @@ class FeatureExtractor:
             except Exception as trans_err:
                 raise RuntimeError(f"Failed to load DINOv2 via PyTorch Hub ({hub_err}) and Transformers ({trans_err})")
     
-    def extract(
-        self,
-        image: np.ndarray,
-        binary_threshold: int = BINARY_IMAGE_THRESHOLD,
-    ) -> np.ndarray:
-        """
-        Extract features from a binary black-and-white image.
-
-        The input is converted to grayscale only to calculate luminance, then
-        thresholded into exactly two values: 0 (black) and 255 (white).
-        DINOv2 still receives three channels because that is its input format;
-        all three channels contain the same binary image.
-
-        Args:
-            image: BGR, grayscale, or single-channel image
-            binary_threshold: Pixels at or above this value become white
-
-        Returns:
-            Feature vector (numpy array)
-        """
-        if image is None or image.size == 0:
-            raise ValueError("Cannot extract features from an empty image")
-        if not 0 <= binary_threshold <= 255:
-            raise ValueError("binary_threshold must be between 0 and 255")
-
-        if image.ndim == 2:
-            gray_image = image
-        elif image.ndim == 3 and image.shape[2] == 1:
-            gray_image = image[:, :, 0]
-        elif image.ndim == 3 and image.shape[2] == 3:
-            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        else:
-            raise ValueError("Expected a grayscale image or a 3-channel BGR image")
-
-        # Convert continuous luminance to exactly black or white.
-        _, binary_image = cv2.threshold(
-            gray_image, binary_threshold, 255, cv2.THRESH_BINARY
-        )
-
-        # DINOv2 expects 3 channels, but all channels contain identical binary
-        # data, so color cannot affect the embedding.
-        binary_rgb_image = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2RGB)
-
+    def _extract_dino_embedding(self, binary_rgb_image: np.ndarray) -> np.ndarray:
+        """Run a single 3-channel binary image through DINOv2 and L2-normalize."""
         if getattr(self, "use_hub", True):
-            # Native PyTorch preprocessing (resize 224x224, bicubic, ImageNet normalization)
             resized = cv2.resize(binary_rgb_image, (224, 224), interpolation=cv2.INTER_CUBIC)
             norm_arr = resized.astype(np.float32) / 255.0
             mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
@@ -100,7 +58,6 @@ class FeatureExtractor:
 
             with torch.no_grad():
                 out = self.model(tensor)
-                # If output is tensor directly [1, 384], flatten
                 if isinstance(out, torch.Tensor):
                     features = out.cpu().numpy().flatten()
                 elif hasattr(out, "last_hidden_state"):
@@ -118,7 +75,72 @@ class FeatureExtractor:
 
             features = outputs.last_hidden_state[:, 0].cpu().numpy().flatten()
 
-        return features
+        return features / (np.linalg.norm(features) + 1e-8)
+
+    def extract(
+        self,
+        image: np.ndarray,
+        binary_threshold: int = BINARY_IMAGE_THRESHOLD,
+    ) -> np.ndarray:
+        """
+        Extract hybrid features from a binary black-and-white silhouette image.
+
+        Combines:
+        1. Aspect-normalized 224x224 DINOv2 embedding (0.72 weight)
+        2. Aspect-damped letterbox-padded 224x224 DINOv2 embedding with 16% margin (0.64 weight)
+        3. 32x32 Gaussian-smoothed silhouette spatial density vector (0.26 weight)
+        """
+        if image is None or image.size == 0:
+            raise ValueError("Cannot extract features from an empty image")
+        if not 0 <= binary_threshold <= 255:
+            raise ValueError("binary_threshold must be between 0 and 255")
+
+        if image.ndim == 2:
+            gray_image = image
+        elif image.ndim == 3 and image.shape[2] == 1:
+            gray_image = image[:, :, 0]
+        elif image.ndim == 3 and image.shape[2] == 3:
+            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            raise ValueError("Expected a grayscale image or a 3-channel BGR image")
+
+        _, binary_image = cv2.threshold(
+            gray_image, binary_threshold, 255, cv2.THRESH_BINARY
+        )
+        binary_rgb_image = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2RGB)
+
+        # 1. Standard 224x224 DINOv2 embedding
+        f_norm = self._extract_dino_embedding(binary_rgb_image)
+
+        # 2. Aspect-damped letterbox-padded 224x224 DINOv2 embedding
+        h, w = binary_rgb_image.shape[:2]
+        max_dim = max(h, w)
+        margin = int(0.16 * max_dim)
+        target_w = int(w + 0.55 * (max_dim - w)) + 2 * margin
+        target_h = int(h + 0.55 * (max_dim - h)) + 2 * margin
+        pad_left = (target_w - w) // 2
+        pad_right = target_w - w - pad_left
+        pad_top = (target_h - h) // 2
+        pad_bot = target_h - h - pad_top
+        padded_rgb = cv2.copyMakeBorder(
+            binary_rgb_image,
+            pad_top,
+            pad_bot,
+            pad_left,
+            pad_right,
+            cv2.BORDER_CONSTANT,
+            value=(255, 255, 255),
+        )
+        f_pad = self._extract_dino_embedding(padded_rgb)
+
+        # 3. 32x32 smoothed binary silhouette spatial density vector
+        mask_bin = (binary_image < 128).astype(np.float32)
+        grid = cv2.resize(mask_bin, (32, 32), interpolation=cv2.INTER_AREA)
+        grid = cv2.GaussianBlur(grid, (5, 5), 1.0).flatten()
+        f_grid = grid / (np.linalg.norm(grid) + 1e-8)
+
+        combined = np.concatenate([f_norm * 0.72, f_pad * 0.64, f_grid * 0.26])
+        return combined / (np.linalg.norm(combined) + 1e-8)
 
 
 def extract_features(image: np.ndarray, extractor: Optional[FeatureExtractor] = None) -> np.ndarray:

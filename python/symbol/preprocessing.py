@@ -25,17 +25,21 @@ def preprocess_image(img: np.ndarray, rgb_threshold: int = RGB_THRESHOLD) -> Tup
         - filtered_image: Image with background removed (white)
         - mask: Boolean mask (True = background, False = objects)
     """
-    # Create mask for light pixels (background)
-    mask_light = (
-        (img[:, :, 0] >= rgb_threshold) & 
-        (img[:, :, 1] >= rgb_threshold) & 
-        (img[:, :, 2] >= rgb_threshold)
-    )
-    
+    c_max = np.max(img, axis=2).astype(np.int16)
+    c_min = np.min(img, axis=2).astype(np.int16)
+    chroma = c_max - c_min
+
+    # Auto-detect grayscale images vs colored 3D renders
+    if bool(np.percentile(chroma, 99) < 10):
+        mask_light = c_min >= 228
+    else:
+        # Neutral floor & ambient shadows have low chroma (<= 30), while pastel 3D objects have chroma > 30
+        mask_light = ((c_min >= rgb_threshold) & (chroma <= 30)) | (c_min >= 244)
+
     # Copy image and set background to white
     img_filtered = img.copy()
     img_filtered[mask_light] = [255, 255, 255]
-    
+
     return img_filtered, mask_light
 
 
