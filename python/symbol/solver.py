@@ -61,11 +61,21 @@ class SymbolCaptchaSolver:
             screen_img = screen_image.copy()
             print(f"Screen: {screen_img.shape[1]}x{screen_img.shape[0]}")
 
+        orig_h, orig_w = screen_img.shape[:2]
+        work_img = screen_img
+        scale_factor = 1.0
+        if 0 < orig_w < 450:
+            scale_factor = 552.0 / float(orig_w)
+            new_w = int(round(orig_w * scale_factor))
+            new_h = int(round(orig_h * scale_factor))
+            work_img = cv2.resize(screen_img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+            print(f"  Upscaled low-res input {orig_w}x{orig_h} -> {new_w}x{new_h} (scale={scale_factor:.3f})")
+
         print("\n[1/4] Preprocessing...")
-        screen_filtered, _ = preprocess_image(screen_img)
+        screen_filtered, _ = preprocess_image(work_img)
         print("  Background removed")
         if debug:
-            cv2.imwrite(f"{debug_path}/00_original.jpg", screen_img)
+            cv2.imwrite(f"{debug_path}/00_original.jpg", work_img)
             cv2.imwrite(f"{debug_path}/01_filtered.jpg", screen_filtered)
 
         print("\n[2/4] Detecting objects...")
@@ -101,6 +111,19 @@ class SymbolCaptchaSolver:
         if match is None:
             print(f"No object pair reached the threshold ({threshold:.2f}).")
             return None
+
+        if abs(scale_factor - 1.0) > 1e-3:
+            inv = 1.0 / scale_factor
+            p1, p2 = match["positions"]
+            b1, b2 = match["bboxes"]
+            match["positions"] = (
+                (int(round(p1[0] * inv)), int(round(p1[1] * inv))),
+                (int(round(p2[0] * inv)), int(round(p2[1] * inv))),
+            )
+            match["bboxes"] = (
+                (int(round(b1[0] * inv)), int(round(b1[1] * inv)), int(round(b1[2] * inv)), int(round(b1[3] * inv))),
+                (int(round(b2[0] * inv)), int(round(b2[1] * inv)), int(round(b2[2] * inv)), int(round(b2[3] * inv))),
+            )
 
         first_idx, second_idx = match["object_indices"]
         first_pos, second_pos = match["positions"]

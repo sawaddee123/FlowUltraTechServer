@@ -64,7 +64,7 @@ def upload_dir(sftp, local_dir, remote_dir, excludes=None):
             try:
                 r_stat = sftp.stat(dest)
                 if r_stat.st_size == local_sz:
-                    if f.endswith('.html') or f.endswith('.json') or f.endswith('.txt') or f.endswith('.css'):
+                    if local_sz < 512 * 1024:
                         with sftp.open(dest, 'rb') as rf, open(src, 'rb') as lf:
                             if rf.read() == lf.read():
                                 should_upload = False

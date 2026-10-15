@@ -253,6 +253,7 @@ const handleCaptcha = (kind: CaptchaKind) => async (req: Request, res: Response)
     }
 
     res.status(statusCode).json({
+      ...rest,
       captchaId,
       status: initialStatus,
       appVersion,
@@ -271,7 +272,6 @@ const handleCaptcha = (kind: CaptchaKind) => async (req: Request, res: Response)
       scale_x: scaleX,
       scale_y: scaleY,
       time: (solveResult as { time?: number })?.time ?? durationSec,
-      ...rest,
     });
   } catch (err) {
     durationSec = (Date.now() - start) / 1000;

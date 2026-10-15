@@ -6,7 +6,7 @@ import { installProcessHandlers } from "./middlewares/error.js";
 import { buildApp } from "./app.js";
 import { ensureImageDirs } from "./routes/captcha.js";
 import { initSocketHub } from "./services/socketHub.js";
-import { stopPythonSymbolDaemon } from "./ml/symbol.js";
+import { ensurePythonSymbolDaemon, stopPythonSymbolDaemon } from "./ml/symbol.js";
 
 const main = async (): Promise<void> => {
   installProcessHandlers();
@@ -39,6 +39,9 @@ const main = async (): Promise<void> => {
     console.log(`Captcha & Auth Service is running on http://localhost:${env.PORT}`);
     console.log(`MongoDB URI: ${env.MONGODB_URI}`);
     console.log(`Root user: ${env.ROOT_USERNAME}`);
+
+    // Pre-warm Python Symbol Solver Daemon (FastSAM + DINOv2) in background
+    void ensurePythonSymbolDaemon();
 
     // Notify PM2 process manager that server is ready to accept traffic
     if (typeof process.send === "function") {
