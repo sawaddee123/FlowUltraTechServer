@@ -137,18 +137,19 @@ class ObjectDetector:
     
     @staticmethod
     def _get_color_palette_masks(img_filtered: np.ndarray) -> dict:
-        """Partition non-white foreground pixels into the 6 recurring 3D material color buckets."""
+        """Partition non-white foreground pixels into the 7 recurring 3D material color buckets."""
         hsv = cv2.cvtColor(img_filtered, cv2.COLOR_BGR2HSV)
-        H, S = hsv[:, :, 0], hsv[:, :, 1]
+        H, S, V = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
         nw = np.any(img_filtered < 250, axis=2)
 
         return {
-            "orange": nw & (((H <= 16) | (H >= 172)) & (S >= 68)),
-            "brown":  nw & ((H <= 22) & (S >= 15) & (S < 68)),
-            "yellow": nw & ((H >= 17) & (H <= 38) & (S >= 42)),
-            "green":  nw & ((H >= 42) & (H <= 82)),
-            "blue":   nw & ((H >= 88) & (H <= 126)),
-            "purple": nw & ((H >= 128) & (H <= 171)),
+            "orange": nw & (((H <= 16) | ((H >= 168) & (S < 135))) & (S >= 68)),
+            "rose":   nw & ((H >= 168) & (S >= 135)),
+            "brown":  nw & ((((H <= 16) | (H >= 168)) & (S >= 10) & (S < 68)) | ((H >= 17) & (H <= 39) & (S >= 10) & (S < 42))) & (V <= 225),
+            "yellow": nw & ((H >= 17) & (H <= 39) & (S >= 42)),
+            "green":  nw & ((H >= 40) & (H <= 85)),
+            "blue":   nw & ((H >= 86) & (H <= 127)),
+            "purple": nw & ((H >= 128) & (H <= 167)),
         }
 
     @staticmethod
@@ -298,6 +299,8 @@ class ObjectDetector:
             all_objects_img = img.copy()
             filtered_img = img.copy()
 
+        palette = self._get_color_palette_masks(img) if not is_gray else {}
+
         raw_candidates = []
         oversized_compound = []
         for mask, box in zip(masks, boxes):
@@ -329,8 +332,12 @@ class ObjectDetector:
 
             fill_ratio = fg_pixels / float(max(1, w * h))
             is_diagonal_pair = (w >= 0.15 * img_w and h >= 0.22 * img_h and fill_ratio < 0.54)
+            is_multicolor = False
+            if not is_gray and area >= min_area * 2 and (h >= 0.24 * img_h or w >= 0.14 * img_w):
+                n_cols = sum(1 for cm in palette.values() if int(np.sum(m_bool & cm)) >= min_area)
+                is_multicolor = n_cols >= 2
 
-            if area > max_area or w > 0.19 * img_w or h > 0.365 * img_h or is_diagonal_pair:
+            if area > max_area or w > 0.19 * img_w or h > 0.365 * img_h or is_diagonal_pair or is_multicolor:
                 oversized_compound.append((fg_pixels, area, m_bool, (x1, y1, w, h)))
             else:
                 raw_candidates.append((fg_pixels, area, m_bool, (x1, y1, w, h)))
@@ -353,7 +360,9 @@ class ObjectDetector:
                 r_fg = int(np.sum(r_m & non_white))
                 r_fill = r_fg / float(max(1, rw * rh))
                 r_diag = (rw >= 0.15 * img_w and rh >= 0.22 * img_h and r_fill < 0.54)
-                if r_area > max_area or rw > 0.19 * img_w or rh > 0.365 * img_h or r_diag:
+                r_geom_over = (r_area > max_area or rw > 0.19 * img_w or rh > 0.365 * img_h or r_diag)
+                r_multi = (not is_gray and r_area >= min_area * 2 and sum(1 for cm in palette.values() if int(np.sum(r_m & cm)) >= min_area) >= 2)
+                if r_geom_over or r_multi:
                     c_splits = self._split_by_palette_and_ab(img, r_m, min_area)
                     if c_splits:
                         for s_area, s_m, (sx, sy, sw, sh) in c_splits:
@@ -362,12 +371,14 @@ class ObjectDetector:
                                 final_splits.extend(n_sub if n_sub else [(s_area, s_m, (sx, sy, sw, sh))])
                             else:
                                 final_splits.append((s_area, s_m, (sx, sy, sw, sh)))
-                    else:
+                    elif r_geom_over:
                         n_sub = self._split_by_neck(r_m, (rx, ry, rw, rh), img_w, img_h, min_area)
                         if n_sub:
                             final_splits.extend(n_sub)
                         elif r_area <= max_area and rw <= 0.21 * img_w and rh <= 0.375 * img_h:
                             final_splits.append((r_area, r_m, (rx, ry, rw, rh)))
+                    else:
+                        final_splits.append((r_area, r_m, (rx, ry, rw, rh)))
                 else:
                     final_splits.append((r_area, r_m, (rx, ry, rw, rh)))
 
@@ -382,10 +393,20 @@ class ObjectDetector:
         if not is_gray:
             palette = self._get_color_palette_masks(img)
             kernel_open = np.ones((3, 3), np.uint8)
-            for cname in ("orange", "yellow", "green", "blue", "purple"):
+            for cname in ("orange", "rose", "yellow", "green", "blue", "purple"):
                 cmask = palette[cname]
                 cmask_u8 = cv2.morphologyEx(cmask.astype(np.uint8), cv2.MORPH_OPEN, kernel_open)
-                for c_area, c_m, (cx1, cy1, cw, ch) in self._extract_components(cmask_u8 > 0, min_area):
+                raw_color_comps = self._extract_components(cmask_u8 > 0, min_area)
+                expanded_color_comps = []
+                for c_area, c_m, (cx1, cy1, cw, ch) in raw_color_comps:
+                    if cw > 0.19 * img_w or ch > 0.345 * img_h or c_area > max_area:
+                        n_sub = self._split_by_neck(c_m, (cx1, cy1, cw, ch), img_w, img_h, min_area)
+                        if n_sub:
+                            expanded_color_comps.extend(n_sub)
+                    else:
+                        expanded_color_comps.append((c_area, c_m, (cx1, cy1, cw, ch)))
+
+                for c_area, c_m, (cx1, cy1, cw, ch) in expanded_color_comps:
                     ccx, ccy = cx1 + cw // 2, cy1 + ch // 2
                     if ccy >= ui_bottom_y or ccy <= ui_top_y:
                         continue
