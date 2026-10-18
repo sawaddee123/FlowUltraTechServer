@@ -2,6 +2,7 @@ import express, { type Router, type Request, type Response } from "express";
 import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import {
   authenticateToken,
   extractBearer,
@@ -16,6 +17,14 @@ import { emitSecurityAlert } from "../services/socketHub.js";
 
 export const authRouter: Router = express.Router();
 
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 25,
+  message: { error: "พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
@@ -24,9 +33,12 @@ const getLatestAppVersionPayload = async (req: Request) => {
   try {
     const latest = await AppRelease.findOne({ isLatest: true }).sort({ publishedAt: -1 });
     if (latest) {
-      const downloadUrl = latest.downloadUrl.startsWith("/")
-        ? `${req.protocol}://${req.get("host")}${latest.downloadUrl}`
+      const rawUrl = latest.downloadUrl.startsWith("/storage/releases/")
+        ? `/api/v1/app/download?version=${encodeURIComponent(latest.version)}`
         : latest.downloadUrl;
+      const downloadUrl = rawUrl.startsWith("/")
+        ? `${req.protocol}://${req.get("host")}${rawUrl}`
+        : rawUrl;
       return {
         latestVersion: latest.version,
         minRequiredVersion: latest.minRequiredVersion,
@@ -92,9 +104,11 @@ const handleLogin = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Device limit check removed: users can log in from any machine, screen quota is enforced on active instances
+    const isAdminOrRoot =
+      user.isSystemRoot || user.role === "superadmin" || user.role === "admin";
+    const accessLifespan = isAdminOrRoot ? "30d" : "24h";
 
-    // Generate JWT access token (24h lifespan for stable unattended automation)
+    // Generate JWT access token (30d for Backoffice admins so they don't get logged out repeatedly, 24h for clients)
     const accessToken = jwt.sign(
       {
         id: user.userId,
@@ -105,7 +119,7 @@ const handleLogin = async (req: Request, res: Response): Promise<void> => {
         jti: crypto.randomUUID(),
       },
       JWT_SECRET,
-      { algorithm: "HS256", expiresIn: "24h" }
+      { algorithm: "HS256", expiresIn: accessLifespan }
     );
 
     // Generate Refresh token
@@ -132,6 +146,13 @@ const handleLogin = async (req: Request, res: Response): Promise<void> => {
         appVersion: appVersion ? String(appVersion).trim() : "1.0.0",
       },
       expiresAt,
+    });
+
+    res.cookie("flow_token", accessToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
 
     res.json({
@@ -185,7 +206,11 @@ const handleRefreshToken = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Generate new Access Token (24h lifespan for stable unattended automation)
+    const isAdminOrRoot =
+      user.isSystemRoot || user.role === "superadmin" || user.role === "admin";
+    const accessLifespan = isAdminOrRoot ? "30d" : "24h";
+
+    // Generate new Access Token (30d for Backoffice admins, 24h for clients)
     const accessToken = jwt.sign(
       {
         id: user.userId,
@@ -196,25 +221,23 @@ const handleRefreshToken = async (req: Request, res: Response): Promise<void> =>
         jti: crypto.randomUUID(),
       },
       JWT_SECRET,
-      { algorithm: "HS256", expiresIn: "24h" }
+      { algorithm: "HS256", expiresIn: accessLifespan }
     );
 
-    // Rotate Refresh Token
-    const newRawRefreshToken =
-      crypto.randomBytes(16).toString("hex") +
-      "." +
-      jwt.sign({ id: user.userId, username: user.username, t: "r" }, JWT_REFRESH_SECRET, {
-        algorithm: "HS256",
-        expiresIn: "30d",
-      });
-
-    tokenRecord.tokenHash = hashToken(newRawRefreshToken);
+    // Sliding Refresh Token Expiration (keep tokenHash stable so concurrent tabs/requests never invalidate each other)
     tokenRecord.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await tokenRecord.save();
 
+    res.cookie("flow_token", accessToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
     res.json({
       accessToken,
-      refreshToken: newRawRefreshToken,
+      refreshToken: rawToken,
     });
   } catch (error) {
     console.error("[auth:refreshToken] Error:", error);
@@ -373,6 +396,8 @@ const handleLogout = async (req: Request, res: Response): Promise<void> => {
   const tokenFromBody = req.body?.refreshToken as string | undefined;
   const rawToken = tokenFromBody || tokenFromHeader;
 
+  res.setHeader("Set-Cookie", "flow_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax");
+
   try {
     if (rawToken) {
       const hashed = hashToken(rawToken);
@@ -386,7 +411,7 @@ const handleLogout = async (req: Request, res: Response): Promise<void> => {
 };
 
 // Routes on authRouter (mounted at /api/v1/auth as well as root aliases)
-authRouter.post("/login", handleLogin);
+authRouter.post("/login", loginLimiter, handleLogin);
 authRouter.post("/refreshToken", handleRefreshToken);
 authRouter.get("/me", authenticateToken, handleMe);
 authRouter.get("/settings", authenticateToken, handleGetSettings);

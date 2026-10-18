@@ -15,13 +15,28 @@ export const extractBearer = (raw: string | undefined): string | null => {
   return stripped || null;
 };
 
+export const extractCookieToken = (req: Request, cookieName = "flow_token"): string | null => {
+  const rawCookie = req.header("Cookie") || req.header("cookie");
+  if (!rawCookie) return null;
+  const parts = rawCookie.split(";");
+  for (const part of parts) {
+    const [k, ...vParts] = part.trim().split("=");
+    if (k === cookieName && vParts.length > 0) {
+      const val = decodeURIComponent(vParts.join("=").trim());
+      if (val) return val;
+    }
+  }
+  return null;
+};
+
 export const authenticateToken = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
   const queryToken = typeof req.query.token === "string" ? req.query.token : undefined;
-  const accessToken = extractBearer(req.header("Authorization")) || queryToken;
+  const cookieToken = extractCookieToken(req, "flow_token");
+  const accessToken = extractBearer(req.header("Authorization")) || queryToken || cookieToken;
   if (!accessToken) {
     res.status(401).json({ error: "Invalid token" });
     return;
@@ -133,6 +148,40 @@ export const verifyActiveLease = async (
       return;
     }
 
+    // Enforce HWID binding if provided by client and recorded on lease
+    const reqHwid = (
+      req.header("X-Device-Hwid") ||
+      req.header("x-device-hwid") ||
+      (typeof req.body?.hwid === "string" ? req.body.hwid : "")
+    ).trim();
+
+    if (
+      !currentUser?.isSystemRoot &&
+      reqHwid &&
+      activeLease.hwid &&
+      activeLease.hwid !== "unknown-hwid" &&
+      activeLease.hwid !== reqHwid
+    ) {
+      void SecurityEvent.create({
+        userId: numericUserId,
+        eventType: "EXPIRED_LEASE_ABUSE",
+        details: {
+          leaseId,
+          leaseHwid: activeLease.hwid,
+          requestHwid: reqHwid,
+          reason: "Lease HWID mismatch (shared lease attempt)",
+        },
+        ipAddress: req.ip ?? "127.0.0.1",
+        hwid: reqHwid,
+        severity: "high",
+      });
+
+      res.status(403).json({
+        error: "ปฏิเสธการให้บริการ: ตรวจพบการใช้ Lease ข้ามเครื่อง (HWID ไม่ตรงกับจอที่จองสิทธิ์)",
+      });
+      return;
+    }
+
     req.activeLease = activeLease;
     next();
   } catch (error) {
@@ -189,13 +238,18 @@ export const requireSuperAdmin = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  // Support both Header Authorization and Query param (?token=...) for image tags
-  if (req.userId === undefined && req.query.token && typeof req.query.token === "string") {
-    try {
-      const decoded = jwt.verify(req.query.token, JWT_SECRET, { algorithms: ["HS256"] }) as jwt.JwtPayload;
-      if (decoded.id !== undefined) req.userId = decoded.id;
-    } catch {
-      // ignore
+  // Support Header Authorization, Query param (?token=...), and Cookie (flow_token) for image tags
+  if (req.userId === undefined) {
+    const fallbackToken =
+      (typeof req.query.token === "string" ? req.query.token : null) ||
+      extractCookieToken(req, "flow_token");
+    if (fallbackToken) {
+      try {
+        const decoded = jwt.verify(fallbackToken, JWT_SECRET, { algorithms: ["HS256"] }) as jwt.JwtPayload;
+        if (decoded.id !== undefined) req.userId = decoded.id;
+      } catch {
+        // ignore
+      }
     }
   }
 

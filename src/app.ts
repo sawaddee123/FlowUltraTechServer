@@ -52,9 +52,6 @@ export const buildApp = (): Express => {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
   });
 
-  // Mount Storage directory for captcha image previews and release installers
-  app.use("/storage", express.static(path.join(process.cwd(), "storage")));
-
   // Mount Backoffice Web UI
   app.use("/backoffice", backofficeRouter);
   app.use("/admin", backofficeRouter);

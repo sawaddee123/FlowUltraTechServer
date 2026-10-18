@@ -35,6 +35,8 @@ export interface IUser {
 
 export type UserDocument = HydratedDocument<IUser>;
 
+export const CAPTCHAS_PER_TIKTOK_ACCOUNT = 200;
+
 const UserSchema = new Schema<IUser>(
   {
     userId: { type: Number, required: true, unique: true, index: true },
@@ -52,7 +54,7 @@ const UserSchema = new Schema<IUser>(
       maxTiktokAccounts: { type: Number, default: 1, min: 1 },
     },
     captchaQuota: {
-      dailyLimit: { type: Number, default: 500 },
+      dailyLimit: { type: Number, default: CAPTCHAS_PER_TIKTOK_ACCOUNT },
       usedToday: { type: Number, default: 0 },
       lastResetDate: { type: Date, default: Date.now },
     },
@@ -81,6 +83,19 @@ UserSchema.pre("save", function () {
       };
     } else {
       this.license.expiredAt = this.expiredAt;
+    }
+  }
+
+  if (!this.isSystemRoot && this.isNew && (!this.captchaQuota?.dailyLimit || this.captchaQuota.dailyLimit === CAPTCHAS_PER_TIKTOK_ACCOUNT)) {
+    const accounts = Math.max(1, Number(this.license?.maxTiktokAccounts) || 1);
+    if (!this.captchaQuota) {
+      this.captchaQuota = {
+        dailyLimit: accounts * CAPTCHAS_PER_TIKTOK_ACCOUNT,
+        usedToday: 0,
+        lastResetDate: new Date(),
+      };
+    } else {
+      this.captchaQuota.dailyLimit = accounts * CAPTCHAS_PER_TIKTOK_ACCOUNT;
     }
   }
 });

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { existsSync, readdirSync, statSync } from "node:fs";
-import { User, type UserDocument } from "../models/User.js";
+import { User, CAPTCHAS_PER_TIKTOK_ACCOUNT, type UserDocument } from "../models/User.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { ActiveLease } from "../models/ActiveLease.js";
 import { CaptchaLog } from "../models/CaptchaLog.js";
@@ -139,7 +139,7 @@ export class AdminController {
       expiredAt,
       deviceLimit = 9999,
       maxTiktokAccounts = 1,
-      dailyLimit = 500,
+      dailyLimit,
       settings,
     } = req.body ?? {};
 
@@ -195,10 +195,13 @@ export class AdminController {
           plan: String(plan),
           expiredAt: expirationDate,
           deviceLimit: Number(deviceLimit) || 9999,
-          maxTiktokAccounts: Number(maxTiktokAccounts) || 1,
+          maxTiktokAccounts: Math.max(1, Number(maxTiktokAccounts) || 1),
         },
         captchaQuota: {
-          dailyLimit: Number(dailyLimit) || 500,
+          dailyLimit:
+            dailyLimit !== undefined && Number(dailyLimit) > 0
+              ? Number(dailyLimit)
+              : Math.max(1, Number(maxTiktokAccounts) || 1) * CAPTCHAS_PER_TIKTOK_ACCOUNT,
           usedToday: 0,
           lastResetDate: new Date(),
         },
@@ -414,6 +417,8 @@ export class AdminController {
           usedToday: body.captchaQuota.usedToday !== undefined ? Number(body.captchaQuota.usedToday) : user.captchaQuota.usedToday,
           lastResetDate: user.captchaQuota.lastResetDate ?? new Date(),
         };
+      } else if (quotaChanged && !user.isSystemRoot) {
+        user.captchaQuota.dailyLimit = user.license.maxTiktokAccounts * CAPTCHAS_PER_TIKTOK_ACCOUNT;
       }
 
       if (body.settings) {
@@ -989,7 +994,7 @@ export class AdminController {
       const originalName = req.file.originalname;
       const detectedVersion = await detectFileVersion(filePath, originalName);
       const fileHash = await calculateFileSha256(filePath);
-      const downloadUrl = `/storage/releases/${req.file.filename}`;
+      const downloadUrl = `/api/v1/app/download?version=${encodeURIComponent(detectedVersion)}`;
 
       res.json({
         success: true,

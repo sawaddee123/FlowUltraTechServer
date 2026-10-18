@@ -176,10 +176,13 @@ export const initSocketHub = (httpServer: HttpServer): SocketIOServer => {
       if (typeof cb === "function") cb({ time: Date.now() });
     });
 
-    // Socket-based Slot Keep-Alive Heartbeat (sub-millisecond RTT, replaces HTTP polling    // Realtime Slot Heartbeat (Watchdog Keep-Alive with Ultra-low latency <2ms RTT)
+    // Socket-based Slot Keep-Alive Heartbeat (sub-millisecond RTT, replaces HTTP polling)
     socket.on(
       "slot:heartbeat",
-      async (data: { leaseId?: string; hwid?: string }, callback?: (res: Record<string, unknown>) => void) => {
+      async (
+        data: { leaseId?: string; hwid?: string; profileFolderName?: string },
+        callback?: (res: Record<string, unknown>) => void
+      ) => {
         const startTime = performance.now();
         try {
           const leaseId = data?.leaseId ? String(data.leaseId).trim() : "";
@@ -188,12 +191,13 @@ export const initSocketHub = (httpServer: HttpServer): SocketIOServer => {
             return;
           }
 
-          let lease = await ActiveLease.findOne({ leaseId });
+          let lease = await ActiveLease.findOne({ leaseId, userId: user.userId });
           const now = new Date();
           const LEASE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+          const LEASE_ID_REGEX = /^lease_[0-9a-f]{32}$/;
 
           // Self-Healing: If lease was evicted during server reload, auto-heal using socket authenticated user
-          if (!lease && user) {
+          if (!lease && user && LEASE_ID_REGEX.test(leaseId)) {
             try {
               const leaseUser = await User.findOne({ userId: user.userId });
               if (leaseUser && leaseUser.status === "active") {
@@ -206,11 +210,11 @@ export const initSocketHub = (httpServer: HttpServer): SocketIOServer => {
                   lease = await ActiveLease.create({
                     leaseId,
                     userId: user.userId,
-                    profileFolderName: "default",
+                    profileFolderName: data?.profileFolderName ? String(data.profileFolderName).trim() : "default",
                     hwid: data?.hwid ? String(data.hwid).trim() : "",
                     expiresAt: new Date(Date.now() + LEASE_TTL_MS),
                   });
-                  console.log(`[socketHub:heartbeat] 🔄 Restored evicted lease ${leaseId} for user ${user.userId}`);
+                  console.log(`[socketHub:heartbeat] 🔄 Restored evicted lease ${leaseId} for user ${user.userId} (Profile: ${lease.profileFolderName})`);
                 }
               }
             } catch {
@@ -320,6 +324,13 @@ export const initSocketHub = (httpServer: HttpServer): SocketIOServer => {
               });
             }
             return;
+          }
+
+          if (data?.hwid && lease.hwid !== String(data.hwid).trim()) {
+            lease.hwid = String(data.hwid).trim();
+          }
+          if (data?.profileFolderName && lease.profileFolderName === "default") {
+            lease.profileFolderName = String(data.profileFolderName).trim();
           }
 
           // Extend lease by 10 minutes to survive server redeploy and maintenance
@@ -484,8 +495,8 @@ export const initSocketHub = (httpServer: HttpServer): SocketIOServer => {
       if (reqId && pendingLogRequests.has(reqId)) {
         const handler = pendingLogRequests.get(reqId);
         if (handler) handler(respData);
+        ioInstance?.to("admin_room").emit("admin:instance_logs_received", data);
       }
-      ioInstance?.to("admin_room").emit("admin:instance_logs_received", data);
     });
 
     socket.on("disconnect", () => {

@@ -128,6 +128,7 @@ def main():
     local_releases_dir = os.path.join(LOCAL_BASE, "storage", "releases")
     remote_releases_dir = f"{REMOTE_BASE}/storage/releases"
     ensure_remote_dir(sftp, remote_releases_dir)
+    latest_exe_info = None
     if os.path.exists(local_releases_dir):
         print("\n--- Synchronizing Installers in storage/releases/ ---")
         for f in sorted(os.listdir(local_releases_dir)):
@@ -136,6 +137,12 @@ def main():
             src = os.path.join(local_releases_dir, f)
             dest = f"{remote_releases_dir}/{f}"
             local_sz = os.path.getsize(src)
+            sha256_hash = hashlib.sha256()
+            with open(src, "rb") as lf:
+                while chunk := lf.read(1024 * 1024):
+                    sha256_hash.update(chunk)
+            file_sha256 = sha256_hash.hexdigest().upper()
+            latest_exe_info = (f, local_sz, file_sha256)
             remote_sz = -1
             try:
                 r_stat = sftp.stat(dest)
@@ -155,7 +162,31 @@ def main():
     print("\n--- Installing Dependencies & Rebuilding TypeScript ---")
     run_remote(client, f"cd {REMOTE_BASE} && npm install && npm run build")
 
-    # 8. Check Active Latest Release in MongoDB
+    # 8. Register & Check Active Latest Release in MongoDB
+    if latest_exe_info:
+        exe_name, exe_size, exe_hash = latest_exe_info
+        ver_str = exe_name.replace("FlowUltraTech_Setup_v", "").replace(".exe", "").strip()
+        print(f"\n--- Registering Latest Release v{ver_str} in MongoDB ---")
+        upsert_release_cmd = (
+            'mongosh flowultratech --quiet --eval \''
+            'db.app_releases.updateMany({}, { $set: { isLatest: false } }); '
+            f'db.app_releases.updateOne({{ version: "{ver_str}" }}, {{ $set: {{ '
+            f'version: "{ver_str}", '
+            'minRequiredVersion: "1.5.6", '
+            f'title: "FlowUltraTech v{ver_str} (Security & Quota Upgrade)", '
+            'description: "อัปเกรดความปลอดภัย DPAPI, HWID Binding และโควต้า Captcha 200 ครั้ง/วัน/บัญชี", '
+            f'fileName: "{exe_name}", '
+            f'fileSize: {exe_size}, '
+            f'fileHash: "{exe_hash}", '
+            f'downloadUrl: "/api/v1/app/download?version={ver_str}", '
+            'isMandatory: false, '
+            'isLatest: true, '
+            'publishedAt: new Date() '
+            '}, $setOnInsert: { downloadsCount: 0 } }, { upsert: true });'
+            '\''
+        )
+        run_remote(client, upsert_release_cmd)
+
     print("\n--- Checking Active Release in MongoDB ---")
     mongo_release_cmd = (
         'mongosh flowultratech --quiet --eval "'
@@ -178,7 +209,7 @@ def main():
     print("")
     run_remote(client, "curl -s http://localhost:8001/api/v1/app/releases")
     print("")
-    run_remote(client, "curl -sI http://localhost:8001/api/v1/app/download?version=1.0.1 | head -n 8")
+    run_remote(client, "curl -sI http://localhost:8001/api/v1/app/download?version=1.5.7 | head -n 8")
 
     client.close()
     print("\nDeployment and Live Verification completed successfully!")

@@ -1,7 +1,6 @@
 import express, { type Router, type Request, type Response } from "express";
 import crypto from "node:crypto";
-import jwt from "jsonwebtoken";
-import { authenticateToken, extractBearer, JWT_SECRET } from "../middlewares/auth.js";
+import { authenticateToken } from "../middlewares/auth.js";
 import { User, type UserDocument } from "../models/User.js";
 import { ActiveLease } from "../models/ActiveLease.js";
 import { SecurityEvent } from "../models/SecurityEvent.js";
@@ -133,68 +132,71 @@ slotsRouter.post("/acquire", authenticateToken, async (req: Request, res: Respon
   }
 });
 
+const LEASE_ID_REGEX = /^lease_[0-9a-f]{32}$/;
+
 // POST /api/v1/slots/heartbeat
-slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void> => {
+slotsRouter.post("/heartbeat", authenticateToken, async (req: Request, res: Response): Promise<void> => {
   const startTime = performance.now();
   const { leaseId, hwid } = req.body ?? {};
+  const uid = typeof req.userId === "number" ? req.userId : Number(req.userId);
+
+  if (isNaN(uid)) {
+    res.status(401).json({ error: "Unauthorized: invalid user ID" });
+    return;
+  }
 
   if (!leaseId) {
     res.status(400).json({ error: "leaseId is required" });
     return;
   }
 
+  const cleanLeaseId = String(leaseId).trim();
+
   try {
-    let lease = await ActiveLease.findOne({ leaseId: String(leaseId).trim() });
+    let lease = await ActiveLease.findOne({ leaseId: cleanLeaseId, userId: uid });
     const now = new Date();
 
     // Self-Healing: If lease was evicted during server restart or DB reload, restore if token & user valid
-    if (!lease) {
-      const token = extractBearer(req.header("Authorization"));
-      if (token) {
-        try {
-          const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as Record<string, unknown>;
-          const uid = Number(decoded?.id ?? decoded?.userId);
-          if (!isNaN(uid)) {
-            const user = await User.findOne({ userId: uid });
-            if (user && user.status === "active") {
-              const maxAccounts = user.isSystemRoot ? 9999 : (user.license?.maxTiktokAccounts ?? 1);
-              const activeCount = await ActiveLease.countDocuments({
-                userId: uid,
-                expiresAt: { $gt: now },
-              });
-              if (activeCount < maxAccounts) {
-                lease = await ActiveLease.create({
-                  leaseId: String(leaseId).trim(),
-                  userId: uid,
-                  profileFolderName: String(req.body?.profileFolderName || "default"),
-                  hwid: hwid ? String(hwid).trim() : "",
-                  ipAddress: req.ip ?? "127.0.0.1",
-                  expiresAt: new Date(Date.now() + LEASE_TTL_MS),
-                });
-                console.log(`[slots:heartbeat] 🔄 Restored evicted lease ${leaseId} for user ${uid} (Profile: ${lease.profileFolderName})`);
-              }
-            }
+    if (!lease && LEASE_ID_REGEX.test(cleanLeaseId)) {
+      try {
+        const user = await User.findOne({ userId: uid });
+        if (user && user.status === "active") {
+          const maxAccounts = user.isSystemRoot ? 9999 : (user.license?.maxTiktokAccounts ?? 1);
+          const activeCount = await ActiveLease.countDocuments({
+            userId: uid,
+            expiresAt: { $gt: now },
+          });
+          if (activeCount < maxAccounts) {
+            lease = await ActiveLease.create({
+              leaseId: cleanLeaseId,
+              userId: uid,
+              profileFolderName: String(req.body?.profileFolderName || "default").trim(),
+              hwid: hwid ? String(hwid).trim() : "",
+              ipAddress: req.ip ?? "127.0.0.1",
+              expiresAt: new Date(Date.now() + LEASE_TTL_MS),
+            });
+            console.log(`[slots:heartbeat] 🔄 Restored evicted lease ${cleanLeaseId} for user ${uid} (Profile: ${lease.profileFolderName})`);
           }
-        } catch {
-          // Token verification fallback
         }
+      } catch {
+        // Fallback to 404
       }
+    }
 
-      if (!lease) {
-        const elapsed = (performance.now() - startTime).toFixed(1);
-        console.warn(`[slots:heartbeat] ✖ Rejected (404 SLOT_REVOKED) for lease ${leaseId} in ${elapsed}ms`);
-        res.status(404).json({
-          error: "SLOT_REVOKED",
-          isRevoked: true,
-          message: "โควต้าจอของคุณถูกปรับลดลง หรือสิทธิ์จอนี้ถูกเพิกถอนแล้ว กรุณาปิดหน้านี้",
-        });
-        return;
-      }
+    if (!lease) {
+      const elapsed = (performance.now() - startTime).toFixed(1);
+      console.warn(`[slots:heartbeat] ✖ Rejected (404 SLOT_REVOKED) for lease ${cleanLeaseId} in ${elapsed}ms`);
+      res.status(404).json({
+        error: "SLOT_REVOKED",
+        isRevoked: true,
+        message: "โควต้าจอของคุณถูกปรับลดลง หรือสิทธิ์จอนี้ถูกเพิกถอนแล้ว กรุณาปิดหน้านี้",
+      });
+      return;
     }
 
     if (lease.expiresAt < now) {
       const elapsed = (performance.now() - startTime).toFixed(1);
-      console.warn(`[slots:heartbeat] ✖ Rejected (403 LEASE_EXPIRED) for lease ${leaseId} (User: ${lease.userId}) in ${elapsed}ms`);
+      console.warn(`[slots:heartbeat] ✖ Rejected (403 LEASE_EXPIRED) for lease ${cleanLeaseId} (User: ${lease.userId}) in ${elapsed}ms`);
       res.status(403).json({
         error: "LEASE_EXPIRED",
         message: "Lease หมดอายุแล้ว กรุณาขอสิทธิ์ใหม่อีกครั้ง",
@@ -216,7 +218,7 @@ slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void
       await ActiveLease.deleteOne({ _id: lease._id });
       cacheManager.del(userCacheKey);
       const elapsed = (performance.now() - startTime).toFixed(1);
-      console.warn(`[slots:heartbeat] ✖ User inactive for lease ${leaseId} (User: ${lease.userId}) in ${elapsed}ms`);
+      console.warn(`[slots:heartbeat] ✖ User inactive for lease ${cleanLeaseId} (User: ${lease.userId}) in ${elapsed}ms`);
       res.status(403).json({
         error: "ACCOUNT_INACTIVE",
         message: "บัญชีผู้ใช้ถูกระงับการใช้งานหรือไม่อนุญาต",
@@ -228,7 +230,7 @@ slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void
       await ActiveLease.deleteOne({ _id: lease._id });
       cacheManager.del(userCacheKey);
       const elapsed = (performance.now() - startTime).toFixed(1);
-      console.warn(`[slots:heartbeat] ✖ License expired for lease ${leaseId} (User: ${lease.userId}) in ${elapsed}ms`);
+      console.warn(`[slots:heartbeat] ✖ License expired for lease ${cleanLeaseId} (User: ${lease.userId}) in ${elapsed}ms`);
       res.status(403).json({
         error: "LICENSE_EXPIRED",
         isExpired: true,
@@ -248,7 +250,7 @@ slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void
     if (!allowedLeaseIds.has(lease.leaseId)) {
       await ActiveLease.deleteOne({ _id: lease._id });
       const elapsed = (performance.now() - startTime).toFixed(1);
-      console.warn(`[slots:heartbeat] ✖ Quota exceeded for lease ${leaseId} (User: ${lease.userId}, Allowed: ${maxAccounts}) in ${elapsed}ms`);
+      console.warn(`[slots:heartbeat] ✖ Quota exceeded for lease ${cleanLeaseId} (User: ${lease.userId}, Allowed: ${maxAccounts}) in ${elapsed}ms`);
       res.status(403).json({
         error: "SLOT_REVOKED",
         isRevoked: true,
@@ -261,10 +263,14 @@ slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void
     if (hwid && lease.hwid !== String(hwid).trim()) {
       lease.hwid = String(hwid).trim();
     }
+    if (req.body?.profileFolderName && lease.profileFolderName === "default") {
+      lease.profileFolderName = String(req.body.profileFolderName).trim();
+    }
 
     // Extend lease by 10 minutes to survive server redeploy and maintenance
     lease.expiresAt = new Date(Date.now() + LEASE_TTL_MS);
     await lease.save();
+    cacheManager.set(`lease:${lease.leaseId}`, lease, 15);
 
     const elapsed = (performance.now() - startTime).toFixed(1);
     console.log(`[slots:heartbeat] ✔ HTTP Heartbeat SUCCESS for lease ${lease.leaseId} (User: ${lease.userId}, Profile: ${lease.profileFolderName}) -> Extended TTL to ${lease.expiresAt.toISOString()} (took ${elapsed}ms)`);
@@ -283,20 +289,30 @@ slotsRouter.post("/heartbeat", async (req: Request, res: Response): Promise<void
 });
 
 // POST /api/v1/slots/release
-slotsRouter.post("/release", async (req: Request, res: Response): Promise<void> => {
+slotsRouter.post("/release", authenticateToken, async (req: Request, res: Response): Promise<void> => {
   const { leaseId } = req.body ?? {};
+  const uid = typeof req.userId === "number" ? req.userId : Number(req.userId);
+
+  if (isNaN(uid)) {
+    res.status(401).json({ error: "Unauthorized: invalid user ID" });
+    return;
+  }
 
   if (!leaseId) {
     res.status(400).json({ error: "leaseId is required" });
     return;
   }
 
+  const cleanLeaseId = String(leaseId).trim();
+
   try {
-    const result = await ActiveLease.deleteOne({ leaseId: String(leaseId).trim() });
+    const result = await ActiveLease.deleteOne({ leaseId: cleanLeaseId, userId: uid });
+    cacheManager.del(`lease:${cleanLeaseId}`);
+    cacheManager.del(`lease:${cleanLeaseId}:user`);
     if (result.deletedCount > 0) {
       emitLeaseChanged({
         action: "released",
-        lease: { leaseId: String(leaseId).trim() },
+        lease: { leaseId: cleanLeaseId, userId: uid },
       });
     }
     res.json({

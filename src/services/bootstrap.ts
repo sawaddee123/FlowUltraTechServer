@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { User, type UserDocument } from "../models/User.js";
+import { User, CAPTCHAS_PER_TIKTOK_ACCOUNT, type UserDocument } from "../models/User.js";
 
 export const ensureRootUser = async (): Promise<UserDocument> => {
   const rootUsername = (process.env.ROOT_USERNAME || "root").trim().toLowerCase();
@@ -10,9 +10,8 @@ export const ensureRootUser = async (): Promise<UserDocument> => {
     $or: [{ username: rootUsername }, { isSystemRoot: true }],
   })) as UserDocument | null;
 
-  const passwordHash = await bcrypt.hash(rootPassword, 10);
-
   if (!existingRoot) {
+    const passwordHash = await bcrypt.hash(rootPassword, 10);
     const rootUser = (await User.create({
       userId: 1000000,
       username: rootUsername,
@@ -45,12 +44,24 @@ export const ensureRootUser = async (): Promise<UserDocument> => {
     return rootUser;
   }
 
-  // Synchronize root user properties and password from env
-  existingRoot.username = rootUsername;
-  existingRoot.passwordHash = passwordHash;
-  existingRoot.role = "superadmin";
-  existingRoot.isSystemRoot = true;
-  existingRoot.status = "active";
+  let needsSave = false;
+  const passwordMatches = await bcrypt.compare(rootPassword, existingRoot.passwordHash);
+  if (!passwordMatches) {
+    existingRoot.passwordHash = await bcrypt.hash(rootPassword, 10);
+    needsSave = true;
+  }
+  if (
+    existingRoot.username !== rootUsername ||
+    existingRoot.role !== "superadmin" ||
+    !existingRoot.isSystemRoot ||
+    existingRoot.status !== "active"
+  ) {
+    existingRoot.username = rootUsername;
+    existingRoot.role = "superadmin";
+    existingRoot.isSystemRoot = true;
+    existingRoot.status = "active";
+    needsSave = true;
+  }
   if (!existingRoot.license) {
     existingRoot.license = {
       plan: "unlimited_root",
@@ -58,17 +69,27 @@ export const ensureRootUser = async (): Promise<UserDocument> => {
       deviceLimit: 999,
       maxTiktokAccounts: 999,
     };
-  } else {
+    needsSave = true;
+  } else if (existingRoot.license.maxTiktokAccounts !== 999 || existingRoot.license.deviceLimit !== 999) {
     existingRoot.license.maxTiktokAccounts = 999;
     existingRoot.license.deviceLimit = 999;
+    needsSave = true;
   }
 
-  await existingRoot.save();
-  console.log(`[bootstrap] Root user '${rootUsername}' verified and synchronized`);
+  if (needsSave) {
+    await existingRoot.save();
+    console.log(`[bootstrap] Root user '${rootUsername}' synchronized`);
+  } else {
+    console.log(`[bootstrap] Root user '${rootUsername}' verified`);
+  }
   return existingRoot;
 };
 
 export const ensureTestUser = async (): Promise<void> => {
+  if (process.env.ENABLE_TEST_USER !== "true") {
+    return;
+  }
+
   const testUser = await User.findOne({ username: "test" });
   if (!testUser) {
     const passwordHash = await bcrypt.hash("test", 10);
@@ -87,7 +108,7 @@ export const ensureTestUser = async (): Promise<void> => {
         maxTiktokAccounts: 10,
       },
       captchaQuota: {
-        dailyLimit: 1000,
+        dailyLimit: 10 * CAPTCHAS_PER_TIKTOK_ACCOUNT,
         usedToday: 0,
         lastResetDate: new Date(),
       },
