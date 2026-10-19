@@ -142,7 +142,8 @@ def main():
                 while chunk := lf.read(1024 * 1024):
                     sha256_hash.update(chunk)
             file_sha256 = sha256_hash.hexdigest().upper()
-            latest_exe_info = (f, local_sz, file_sha256)
+            if f.startswith("FlowUltraTech_Setup_v"):
+                latest_exe_info = (f, local_sz, file_sha256)
             remote_sz = -1
             try:
                 r_stat = sftp.stat(dest)
@@ -172,14 +173,14 @@ def main():
             'db.app_releases.updateMany({}, { $set: { isLatest: false } }); '
             f'db.app_releases.updateOne({{ version: "{ver_str}" }}, {{ $set: {{ '
             f'version: "{ver_str}", '
-            'minRequiredVersion: "1.5.6", '
-            f'title: "FlowUltraTech v{ver_str} (Security & Quota Upgrade)", '
-            'description: "อัปเกรดความปลอดภัย DPAPI, HWID Binding และโควต้า Captcha 200 ครั้ง/วัน/บัญชี", '
+            f'minRequiredVersion: "{ver_str}", '
+            f'title: "FlowUltraTech v{ver_str} (Real-time Clock & Anti-Rebroadcast Live Proof Overlay)", '
+            'description: "เพิ่มระบบ Real-time Clock & Live Proof Overlay ซิงก์เวลาจริงผ่าน WebSocket Hot-Reload พร้อมพรีวิวสด WebView2 ในแอป, 6 รูปแบบนาฬิกา, Camera Physics และ One-Click CDP Auto-Inject", '
             f'fileName: "{exe_name}", '
             f'fileSize: {exe_size}, '
             f'fileHash: "{exe_hash}", '
-            f'downloadUrl: "/api/v1/app/download?version={ver_str}", '
-            'isMandatory: false, '
+            f'downloadUrl: "/storage/releases/{exe_name}", '
+            'isMandatory: true, '
             'isLatest: true, '
             'publishedAt: new Date() '
             '}, $setOnInsert: { downloadsCount: 0 } }, { upsert: true });'
@@ -209,7 +210,8 @@ def main():
     print("")
     run_remote(client, "curl -s http://localhost:8001/api/v1/app/releases")
     print("")
-    run_remote(client, "curl -sI http://localhost:8001/api/v1/app/download?version=1.5.7 | head -n 8")
+    run_remote(client, "curl -sI http://localhost:8001/api/v1/app/download?version=1.6.0 | head -n 8")
+    run_remote(client, "curl -sI http://localhost:8001/storage/releases/FlowUltraTech_Setup_v1.6.0.exe | head -n 8")
 
     client.close()
     print("\nDeployment and Live Verification completed successfully!")
