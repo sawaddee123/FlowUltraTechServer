@@ -11,6 +11,7 @@ import { findSameSymbolPosition } from "../ml/symbol.js";
 import { CaptchaLog, type CaptchaStatus } from "../models/CaptchaLog.js";
 import { User, CAPTCHAS_PER_TIKTOK_ACCOUNT } from "../models/User.js";
 import { RefreshToken } from "../models/RefreshToken.js";
+import { fingerprint, lookup, rememberSolve, markReused, confirmSolve, evictForCaptcha } from "../services/captchaCache.js";
 import { emitCaptchaLogUpdate } from "../services/socketHub.js";
 import { sendTelegramMessage, sendTelegramPhoto } from "../services/telegramService.js";
 
@@ -284,7 +285,18 @@ const handleCaptcha = (kind: CaptchaKind) => async (req: Request, res: Response)
 
   try {
     // Process image buffer directly in memory without disk read latency
-    solveResult = await solve(kind, decoded.buffer);
+    const fp = await fingerprint(decoded.buffer);
+    const cached = fp ? lookup(kind, fp) : null;
+    if (cached) {
+      solveResult = { ...cached.answer, time: (Date.now() - start) / 1000, cache: cached.match };
+      markReused(captchaId, cached.key);
+      console.log(`[captcha:${kind}] cache ${cached.match} hit ${captchaId}`);
+    } else {
+      solveResult = await solve(kind, decoded.buffer);
+      const { _status: st, time: _t, ...answer } = solveResult as Record<string, unknown>;
+      void _t;
+      if (fp && !st && !answer.error) rememberSolve(captchaId, kind, fp, answer);
+    }
     durationSec = (Date.now() - start) / 1000;
     const statusCode = (solveResult as { _status?: number })._status ?? 200;
     const { _status, ...rest } = solveResult as Record<string, unknown>;
@@ -553,6 +565,8 @@ captchaRouter.post(
       }
 
       const isSuccess = status === "VERIFIED_SUCCESS";
+      if (isSuccess) confirmSolve(String(captchaId));
+      else evictForCaptcha(String(captchaId));
       log.status = status as CaptchaStatus;
       log.result.success = isSuccess;
       log.verification = {
