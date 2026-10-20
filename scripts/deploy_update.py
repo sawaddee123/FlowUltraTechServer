@@ -174,7 +174,7 @@ def main():
             f'db.app_releases.updateOne({{ version: "{ver_str}" }}, {{ $set: {{ '
             f'version: "{ver_str}", '
             f'minRequiredVersion: "{ver_str}", '
-            f'title: "FlowUltraTech v{ver_str} (Real-time Clock & Anti-Rebroadcast Live Proof Overlay)", '
+            f'title: "FlowUltraTech v{ver_str} (Native Proxy Bridge & 5-Mode Auto-Reply Studio)", '
             'description: "เพิ่มระบบ Real-time Clock & Live Proof Overlay ซิงก์เวลาจริงผ่าน WebSocket Hot-Reload พร้อมพรีวิวสด WebView2 ในแอป, 6 รูปแบบนาฬิกา, Camera Physics และ One-Click CDP Auto-Inject", '
             f'fileName: "{exe_name}", '
             f'fileSize: {exe_size}, '
@@ -210,8 +210,8 @@ def main():
     print("")
     run_remote(client, "curl -s http://localhost:8001/api/v1/app/releases")
     print("")
-    run_remote(client, "curl -sI http://localhost:8001/api/v1/app/download?version=1.6.0 | head -n 8")
-    run_remote(client, "curl -sI http://localhost:8001/storage/releases/FlowUltraTech_Setup_v1.6.0.exe | head -n 8")
+    run_remote(client, f"curl -sI http://localhost:8001/api/v1/app/download?version={ver_str} | head -n 8")
+    run_remote(client, f"curl -sI http://localhost:8001/storage/releases/{exe_name} | head -n 8")
 
     client.close()
     print("\nDeployment and Live Verification completed successfully!")

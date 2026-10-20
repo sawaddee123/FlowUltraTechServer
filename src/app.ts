@@ -28,6 +28,22 @@ export const buildApp = (): Express => {
   const publicDir = path.join(process.cwd(), "public");
   app.use("/public", express.static(publicDir));
 
+  // Mount Storage directory for captcha image previews and release installers
+  const storageDir = path.join(process.cwd(), "storage");
+  app.use("/storage", express.static(storageDir));
+
+  // Explicit route for /storage/releases/:filename to ensure reliable .exe file download
+  app.get("/storage/releases/:filename", (req, res) => {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(storageDir, "releases", filename);
+    if (existsSync(filePath)) {
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Type", "application/vnd.microsoft.portable-executable");
+      return res.download(filePath, filename);
+    }
+    res.status(404).json({ error: "Release file not found" });
+  });
+
   // Root endpoint: Serves public landing page for browsers, or JSON for API calls
   app.get("/", (req, res) => {
     if (req.accepts("html") && !req.xhr && !req.path.startsWith("/api")) {
