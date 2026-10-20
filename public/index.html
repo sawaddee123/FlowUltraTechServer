@@ -1,1046 +1,814 @@
 <!DOCTYPE html>
-<html lang="th" class="scroll-smooth dark">
+<html lang="th" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/public/logo-mark.png" />
+  <link rel="shortcut icon" href="/public/favicon.ico" />
   <title>FlowUltraTech — Multi-Instance & Automation</title>
   <meta name="description" content="FlowUltraTech โปรแกรมรัน TikTok LIVE Studio หลายบัญชีพร้อมกัน แยก Proxy อิสระ 100% พร้อมระบบแก้ Captcha อัตโนมัติด้วย AI และโหมดประหยัด GPU สูงสุด 85%" />
-  
-  <!-- Open Graph / Meta -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="FlowUltraTech" />
   <meta property="og:description" content="FlowUltraTech รัน TikTok LIVE Studio ได้หลายจอพร้อมกัน แยกเน็ตอิสระ 100% พร้อม AI ช่วยแก้แคปช่า" />
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Noto Sans Thai"', 'Outfit', 'system-ui', 'sans-serif'],
-            display: ['Outfit', '"Noto Sans Thai"', 'sans-serif'],
-          },
-          colors: {
-            neon: {
-              cyan: '#00f2fe',
-              blue: '#4facfe',
-              rose: '#fe2c55',
-              crimson: '#ff0050',
-            }
-          },
-          animation: {
-            'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'float-slow': 'float 6s ease-in-out infinite',
-          },
-          keyframes: {
-            pulseGlow: {
-              '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
-              '50%': { opacity: '1', transform: 'scale(1.03)' },
-            },
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-6px)' },
-            }
-          }
-        }
-      }
-    }
+    try { var t = localStorage.getItem('fut-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
   </script>
 
   <style>
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #06070a; }
-    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+    /* ───────── Tokens: ชุดเดียวกับ ui-mock (OKLCH hue 270 กรมท่า) ───────── */
+    :root, [data-theme='dark'] {
+      color-scheme: dark;
+      --bg: oklch(0.165 0.032 270);
+      --surface: oklch(0.205 0.036 270);
+      --surface-2: oklch(0.24 0.04 270);
+      --surface-3: oklch(0.275 0.045 270);
+      --line: oklch(0.34 0.045 270 / 0.55);
+      --fg: oklch(0.955 0.012 270);
+      --muted: oklch(0.76 0.03 270);
+      --subtle: oklch(0.6 0.035 270);
+      --primary: oklch(0.7 0.16 264);
+      --primary-strong: oklch(0.78 0.14 264);
+      --primary-soft: oklch(0.7 0.16 264 / 0.16);
+      --on-primary: oklch(0.17 0.05 270);
+      --ok: oklch(0.78 0.15 160);
+      --ok-soft: oklch(0.78 0.15 160 / 0.15);
+      --warn: oklch(0.83 0.14 85);
+      --warn-soft: oklch(0.83 0.14 85 / 0.15);
+      --bad: oklch(0.7 0.19 22);
+      --shadow: 0 1px 2px oklch(0.05 0.03 270 / 0.5), 0 8px 24px oklch(0.05 0.03 270 / 0.35);
+      --shadow-big: 0 2px 4px oklch(0.05 0.03 270 / 0.5), 0 40px 80px -20px oklch(0.04 0.04 270 / 0.8);
+      --scrim: oklch(0.08 0.03 270 / 0.65);
+      --glow: oklch(0.7 0.16 264 / 0.28);
+    }
+    [data-theme='light'] {
+      color-scheme: light;
+      --bg: oklch(0.962 0.01 270);
+      --surface: oklch(0.992 0.004 270);
+      --surface-2: oklch(0.968 0.008 270);
+      --surface-3: oklch(0.94 0.012 270);
+      --line: oklch(0.86 0.02 270 / 0.7);
+      --fg: oklch(0.24 0.055 270);
+      --muted: oklch(0.45 0.045 270);
+      --subtle: oklch(0.58 0.035 270);
+      --primary: oklch(0.5 0.2 266);
+      --primary-strong: oklch(0.42 0.2 266);
+      --primary-soft: oklch(0.5 0.2 266 / 0.1);
+      --on-primary: oklch(0.99 0.005 270);
+      --ok: oklch(0.52 0.14 160);
+      --ok-soft: oklch(0.52 0.14 160 / 0.12);
+      --warn: oklch(0.58 0.14 70);
+      --warn-soft: oklch(0.7 0.15 80 / 0.18);
+      --bad: oklch(0.55 0.2 25);
+      --shadow: 0 1px 2px oklch(0.3 0.05 270 / 0.08), 0 8px 24px oklch(0.3 0.05 270 / 0.1);
+      --shadow-big: 0 2px 4px oklch(0.3 0.05 270 / 0.1), 0 40px 80px -24px oklch(0.3 0.08 270 / 0.35);
+      --scrim: oklch(0.25 0.05 270 / 0.4);
+      --glow: oklch(0.5 0.2 266 / 0.18);
+    }
 
-    /* Cyber Glow & Tonal Surfaces */
-    .glow-cyan {
-      box-shadow: 0 0 50px -12px rgba(0, 242, 254, 0.4);
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font-family: 'Anuphan', 'Noto Sans Thai', system-ui, sans-serif;
+      line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+      transition: background .3s, color .3s;
     }
-    .text-glow-cyan {
-      text-shadow: 0 0 30px rgba(0, 242, 254, 0.6);
-    }
-    .cyber-surface {
-      background: rgba(14, 15, 20, 0.72);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .cyber-surface:hover {
-      border-color: rgba(0, 242, 254, 0.28);
-      transform: translateY(-2px);
-      box-shadow: 0 16px 40px -12px rgba(0, 242, 254, 0.18);
-    }
-    .gradient-border-btn {
-      position: relative;
-      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 40%, #fe2c55 100%);
-      padding: 1.5px;
-      border-radius: 1.15rem;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .gradient-border-btn:hover {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 0 45px rgba(0, 242, 254, 0.45), 0 0 25px rgba(254, 44, 85, 0.35);
-    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 8px; }
+    ::selection { background: var(--primary-soft); }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    svg.i { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-    /* Scroll-Driven Reveal Animations */
-    .reveal-on-scroll {
-      opacity: 0;
-      transform: translateY(30px) scale(0.97);
-      filter: blur(4px);
-      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-                  transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-                  filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: opacity, transform, filter;
+    /* ───────── พื้นหลัง: กริดจางๆ + แสงน้ำเงินด้านบน ───────── */
+    .bg-fx { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .bg-fx::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 56px 56px; opacity: .35;
+      -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 20%, transparent 75%);
+      mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 20%, transparent 75%);
     }
-    .reveal-on-scroll.is-visible {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0px);
+    .bg-fx::after {
+      content: ''; position: absolute; left: 50%; top: -280px; width: 900px; height: 600px; transform: translateX(-50%);
+      background: radial-gradient(closest-side, var(--glow), transparent); filter: blur(30px);
+      animation: breathe 7s ease-in-out infinite;
     }
-    .delay-100 { transition-delay: 100ms; }
-    .delay-200 { transition-delay: 200ms; }
-    .delay-300 { transition-delay: 300ms; }
-    .delay-400 { transition-delay: 400ms; }
+    @keyframes breathe { 0%,100% { opacity: .7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
+    .page { position: relative; z-index: 1; }
+
+    #progress { position: fixed; top: 0; left: 0; height: 2px; width: 0; background: var(--primary); z-index: 90; transition: width .08s linear; }
+
+    /* ───────── ปุ่ม ───────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      height: 40px; padding: 0 18px; border-radius: 10px; border: 0;
+      font-weight: 600; font-size: 14px; transition: transform .2s cubic-bezier(.16,1,.3,1), background .2s, box-shadow .2s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: 0 6px 20px -6px var(--glow); }
+    .btn-primary:hover { background: var(--primary-strong); transform: translateY(-1px); box-shadow: 0 10px 28px -6px var(--glow); }
+    .btn-secondary { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); }
+    .btn-secondary:hover { background: var(--surface-3); }
+    .btn-lg { height: 56px; padding: 0 28px; font-size: 16px; border-radius: 14px; }
+    .btn-lg .i { font-size: 20px; }
+    .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; border: 0; background: transparent; color: var(--muted); transition: background .2s, color .2s; }
+    .icon-btn:hover { background: var(--surface-2); color: var(--fg); }
+    .icon-btn .i { font-size: 18px; }
+    [data-theme='dark'] .sun { display: block; } [data-theme='dark'] .moon { display: none; }
+    [data-theme='light'] .sun { display: none; } [data-theme='light'] .moon { display: block; }
+
+    /* ───────── Header ───────── */
+    header.top {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in oklch, var(--bg) 78%, transparent);
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .top-in { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; }
+    .brand b { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+    .brand small { display: block; font-size: 11px; color: var(--subtle); line-height: 1.1; }
+    nav.links { display: flex; gap: 4px; }
+    nav.links a { padding: 7px 14px; border-radius: 999px; font-size: 14px; color: var(--muted); transition: background .2s, color .2s; }
+    nav.links a:hover { background: var(--surface-2); color: var(--fg); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    @media (max-width: 760px) { nav.links, .brand small { display: none; } }
+
+    /* ───────── Hero ───────── */
+    .hero { padding: 72px 0 40px; text-align: center; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 999px;
+      background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; color: var(--muted);
+    }
+    .pill .tag { background: var(--ok-soft); color: var(--ok); padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; position: relative; }
+    .dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: currentColor; animation: ring 1.8s cubic-bezier(.25,1,.5,1) infinite; }
+    @keyframes ring { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(3); opacity: 0; } }
+    h1.headline {
+      margin: 26px auto 0; max-width: 900px; font-size: clamp(36px, 6.4vw, 72px); font-weight: 700; line-height: 1.12; letter-spacing: -.025em;
+    }
+    h1.headline em {
+      font-style: normal;
+      background: linear-gradient(100deg, var(--primary-strong), var(--primary) 45%, var(--ok));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      background-size: 200% 100%; animation: sheen 6s ease-in-out infinite;
+    }
+    @keyframes sheen { 0%,100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+    .lead { margin: 22px auto 0; max-width: 620px; font-size: clamp(15px, 2vw, 18px); color: var(--muted); }
+    .cta-row { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+    .cta-meta { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; font-size: 13px; color: var(--subtle); }
+    .cta-meta span { display: inline-flex; align-items: center; gap: 7px; }
+    .cta-meta .i { font-size: 15px; color: var(--ok); }
+    .link-btn { background: none; border: 0; padding: 8px 14px; border-radius: 10px; color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: color .2s, background .2s; }
+    .link-btn:hover { color: var(--primary); background: var(--primary-soft); }
+
+    /* ───────── Mock app window (จุดเด่นของหน้า) ───────── */
+    .stage { margin-top: 64px; perspective: 1600px; }
+    .win {
+      position: relative; margin: 0 auto; max-width: 1040px; text-align: left;
+      border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-big), inset 0 0 0 1px var(--line);
+      transform: rotateX(var(--rx, 6deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d;
+      transition: transform .25s cubic-bezier(.25,1,.5,1); overflow: hidden;
+    }
+    .win-bar { height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--surface-2); box-shadow: 0 1px 0 var(--line); }
+    .win-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
+    .win-bar span { margin: 0 auto; font-size: 12px; color: var(--subtle); transform: translateX(-24px); }
+    .win-body { display: grid; grid-template-columns: 188px 1fr 250px; min-height: 340px; }
+    .w-side { padding: 14px 10px; background: var(--bg); display: flex; flex-direction: column; gap: 4px; }
+    .w-side .it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 9px; font-size: 13px; color: var(--muted); }
+    .w-side .it .i { font-size: 16px; }
+    .w-side .it.on { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+    .w-main { padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+    .w-title { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .w-title small { font-weight: 400; color: var(--subtle); font-size: 12px; }
+    .acc {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2);
+      animation: rise .6s cubic-bezier(.16,1,.3,1) both; font-size: 13px;
+    }
+    .acc:nth-child(2) { animation-delay: .1s; } .acc:nth-child(3) { animation-delay: .2s; } .acc:nth-child(4) { animation-delay: .3s; } .acc:nth-child(5) { animation-delay: .4s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; background: var(--primary-soft); color: var(--primary); }
+    .acc .nm { flex: 1; min-width: 0; } .acc .nm b { display: block; font-weight: 600; line-height: 1.25; }
+    .acc .nm small { color: var(--subtle); font-size: 11px; }
+    .badge { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .b-ok { background: var(--ok-soft); color: var(--ok); } .b-warn { background: var(--warn-soft); color: var(--warn); }
+    .meter { width: 56px; height: 5px; border-radius: 9px; background: var(--surface-3); overflow: hidden; }
+    .meter i { display: block; height: 100%; background: var(--primary); border-radius: 9px; transform-origin: left; animation: fill 1.4s cubic-bezier(.16,1,.3,1) both .5s; }
+    @keyframes fill { from { transform: scaleX(0); } }
+    .w-panel { padding: 18px; background: var(--bg); display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+    .w-panel h6 { margin: 0; font-size: 12px; font-weight: 600; color: var(--subtle); letter-spacing: .04em; text-transform: uppercase; }
+    .puzzle { height: 92px; border-radius: 10px; position: relative; background:
+      linear-gradient(135deg, var(--surface-3), var(--surface-2)); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+    .puzzle::before { content: ''; position: absolute; top: 28px; left: 150px; width: 34px; height: 34px; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--subtle); opacity: .6; }
+    .puzzle .piece { position: absolute; top: 28px; left: 10px; width: 34px; height: 34px; border-radius: 8px; background: var(--primary); animation: slide 4.2s cubic-bezier(.65,0,.35,1) infinite; }
+    @keyframes slide { 0%,12% { transform: translateX(0); } 55%,82% { transform: translateX(140px); } 100% { transform: translateX(0); } }
+    .solved { display: flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 600; animation: pulse 4.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,50% { opacity: .35; } 62%,85% { opacity: 1; } 100% { opacity: .35; } }
+    .kv { display: flex; justify-content: space-between; color: var(--muted); } .kv b { color: var(--fg); font-weight: 600; }
+    @media (max-width: 900px) { .win-body { grid-template-columns: 1fr; } .w-side, .w-panel { display: none; } .win { --rx: 0deg !important; --ry: 0deg !important; } }
+
+    /* floating chips รอบหน้าต่าง */
+    .chip {
+      position: absolute; z-index: 3; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px;
+      background: var(--surface); box-shadow: var(--shadow), inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 600;
+      animation: floaty 6s ease-in-out infinite;
+    }
+    .chip .i { font-size: 18px; color: var(--primary); } .chip small { display: block; font-weight: 400; color: var(--subtle); font-size: 11px; line-height: 1.2; }
+    .chip.c1 { top: 70px; left: -22px; } .chip.c2 { bottom: 40px; right: -18px; animation-delay: -3s; } .chip.c2 .i { color: var(--ok); }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @media (max-width: 1100px) { .chip.c1 { left: 8px; } .chip.c2 { right: 8px; } }
+    @media (max-width: 600px) { .chip { display: none; } }
+
+    /* ───────── Stats strip ───────── */
+    .stats { margin-top: 72px; display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+    .stat { padding: 26px 22px; text-align: center; position: relative; }
+    .stat + .stat::before { content: ''; position: absolute; left: 0; top: 24%; bottom: 24%; width: 1px; background: var(--line); }
+    .stat b { display: block; font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -.02em; color: var(--primary); line-height: 1.1; }
+    .stat span { font-size: 13px; color: var(--muted); }
+    @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat:nth-child(3)::before { display: none; } }
+
+    /* ───────── Sections ───────── */
+    section.blk { padding: 96px 0 0; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); }
+    .sec-h { margin: 10px 0 0; font-size: clamp(26px, 4vw, 40px); font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+    .sec-p { margin: 12px 0 0; color: var(--muted); max-width: 560px; }
+    .sec-head { text-align: center; margin-bottom: 48px; } .sec-head .sec-p { margin-left: auto; margin-right: auto; }
+
+    /* Bento features */
+    .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .card {
+      position: relative; padding: 26px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
+      overflow: hidden; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;
+    }
+    .card::before { /* spotlight ตามเมาส์ */
+      content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none;
+      background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), var(--primary-soft), transparent 70%);
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: var(--shadow), inset 0 0 0 1px color-mix(in oklch, var(--primary) 45%, var(--line)); }
+    .card:hover::before { opacity: 1; }
+    .card > * { position: relative; }
+    .card .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 22px; margin-bottom: 18px; }
+    .card h3 { margin: 0; font-size: 18px; font-weight: 600; }
+    .card p { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+    .s2 { grid-column: span 2; } .s3 { grid-column: span 3; } .s4 { grid-column: span 4; }
+    .card .viz { margin-top: 20px; }
+    .proxy-list { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+    .proxy-list div { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 9px; background: var(--surface-2); }
+    .proxy-list b { color: var(--fg); font-weight: 500; } .proxy-list em { margin-left: auto; font-style: normal; color: var(--ok); }
+    .gpu { display: flex; align-items: flex-end; gap: 6px; height: 74px; }
+    .gpu i { flex: 1; border-radius: 5px 5px 2px 2px; background: var(--surface-3); height: var(--h); position: relative; transform-origin: bottom; animation: grow 1.2s cubic-bezier(.16,1,.3,1) both; }
+    .gpu i.lo { background: var(--primary); height: var(--l); animation-delay: .25s; }
+    @keyframes grow { from { transform: scaleY(0); } }
+    .gpu-cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--subtle); margin-top: 8px; }
+    .big { font-size: 48px; font-weight: 700; letter-spacing: -.03em; color: var(--ok); line-height: 1; }
+    @media (max-width: 860px) { .bento { grid-template-columns: 1fr; } .s2, .s3, .s4 { grid-column: auto; } }
+
+    /* Specs */
+    .specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .spec { padding: 26px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+    .spec.rec { box-shadow: inset 0 0 0 1.5px var(--primary), var(--shadow); background: linear-gradient(180deg, var(--primary-soft), var(--surface) 55%); }
+    .spec h4 { margin: 0 0 4px; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .spec .rb { margin-left: auto; font-size: 11px; padding: 2px 10px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-weight: 600; }
+    .spec ul { list-style: none; margin: 16px 0 0; padding: 0; font-size: 14px; }
+    .spec li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; box-shadow: 0 1px 0 var(--line); }
+    .spec li:last-child { box-shadow: none; } .spec li span { color: var(--subtle); } .spec li b { font-weight: 500; text-align: right; }
+    @media (max-width: 860px) { .specs { grid-template-columns: 1fr; } }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; position: relative; }
+    .step { padding: 26px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+    .step .n { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); font-weight: 700; font-size: 15px; box-shadow: 0 0 0 6px var(--primary-soft); }
+    .step h3 { margin: 20px 0 0; font-size: 17px; font-weight: 600; } .step p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Final CTA */
+    .final { margin-top: 96px; padding: 64px 24px; border-radius: 24px; text-align: center; position: relative; overflow: hidden; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+    .final::before { content: ''; position: absolute; left: 50%; top: -60%; width: 700px; height: 500px; transform: translateX(-50%); background: radial-gradient(closest-side, var(--glow), transparent); }
+    .final > * { position: relative; }
+    .final h2 { margin: 0; font-size: clamp(26px, 4.4vw, 44px); font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+    .final p { margin: 12px auto 0; max-width: 480px; color: var(--muted); }
+    .final .cta-row { margin-top: 30px; }
+
+    footer.foot { margin-top: 80px; box-shadow: 0 -1px 0 var(--line); padding: 28px 0; font-size: 13px; color: var(--subtle); }
+    .foot-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+    .foot-in nav { display: flex; gap: 22px; } .foot-in a:hover { color: var(--fg); }
+
+    /* Reveal */
+    .rv { opacity: 0; transform: translateY(24px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+    .rv.in { opacity: 1; transform: none; }
+    .d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; } .d3 { transition-delay: .24s; }
+
+    /* ───────── Toast ───────── */
+    #downloadToast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 130; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 14px;
+      background: var(--surface-2); box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
+      transform: translateY(20px); opacity: 0; pointer-events: none; transition: all .3s cubic-bezier(.16,1,.3,1);
+    }
+    #downloadToast.show { transform: none; opacity: 1; }
+    #downloadToast .ti { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); font-size: 18px; }
+    #downloadToast b { display: block; font-size: 14px; } #downloadToast small { color: var(--muted); font-size: 12px; }
+
+    /* ───────── Modal (Sheet ข้างขวา แบบเดียวกับ mock) ───────── */
+    #versionsModal { position: fixed; inset: 0; z-index: 120; opacity: 0; pointer-events: none; transition: opacity .25s; }
+    #versionsModal.open { opacity: 1; pointer-events: auto; }
+    #versionsModalBackdrop { position: absolute; inset: 0; background: var(--scrim); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .sheet {
+      position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); display: flex; flex-direction: column;
+      background: var(--surface); box-shadow: var(--shadow-big), inset 1px 0 0 var(--line);
+      transform: translateX(32px); transition: transform .35s cubic-bezier(.16,1,.3,1);
+    }
+    #versionsModal.open .sheet { transform: none; }
+    .sheet-h { display: flex; align-items: center; gap: 14px; padding: 20px 22px; box-shadow: 0 1px 0 var(--line); }
+    .sheet-h .ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 20px; }
+    .sheet-h h3 { margin: 0; font-size: 17px; font-weight: 600; } .sheet-h p { margin: 0; font-size: 12px; color: var(--muted); }
+    .sheet-h .icon-btn { margin-left: auto; }
+    .sheet-info { padding: 10px 22px; background: var(--surface-2); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+    #versionsCountBadge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 10px; border-radius: 999px; background: var(--surface-3); color: var(--fg); white-space: nowrap; }
+    #versionsListContainer { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+    .sheet-f { padding: 14px 22px; box-shadow: 0 -1px 0 var(--line); display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--subtle); }
+    .sk { height: 78px; border-radius: 12px; background: var(--surface-2); animation: sk 1.4s ease-in-out infinite; }
+    @keyframes sk { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+    .rel { padding: 14px 16px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: space-between; gap: 14px; transition: background .2s; }
+    .rel:hover { background: var(--surface-3); }
+    .rel.latest { box-shadow: inset 0 0 0 1.5px var(--primary); background: var(--primary-soft); }
+    .rel .rv-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .rel .ver { font-weight: 700; font-size: 16px; }
+    .rel .meta { font-size: 12px; color: var(--subtle); }
+    .rel p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+    .empty { text-align: center; padding: 40px 0; font-size: 13px; color: var(--muted); }
+    .btn-sm { height: 34px; padding: 0 14px; font-size: 13px; border-radius: 9px; flex: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .rv { opacity: 1; transform: none; }
+    }
   </style>
 </head>
 
-<body class="bg-[#06070a] text-zinc-100 font-sans min-h-screen relative overflow-x-hidden selection:bg-[#fe2c55]/30 selection:text-white">
+<body>
+  <div id="progress"></div>
+  <div class="bg-fx" aria-hidden="true"></div>
 
-  <!-- Top Neon Cyber Scroll Progress Bar -->
-  <div class="fixed top-0 left-0 right-0 h-[2.5px] z-[60] pointer-events-none bg-transparent">
-    <div id="scrollProgressBar" class="h-full w-0 bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] shadow-[0_0_10px_rgba(0,242,254,0.8)] transition-all duration-75 ease-out"></div>
+  <!-- Toast -->
+  <div id="downloadToast" role="status">
+    <div class="ti"><svg class="i"><use href="#i-download"/></svg></div>
+    <div><b>กำลังเริ่มดาวน์โหลด</b><small>ตัวติดตั้งกำลังถูกส่งมา รอสักครู่</small></div>
   </div>
 
-  <!-- High-Tech Cyberpunk Page Load Transition -->
-  <div id="pageLoader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#06070a] transition-all duration-700 ease-out select-none">
-    <!-- Ambient Neon Cyber Glow -->
-    <div class="absolute w-[500px] h-[500px] bg-gradient-to-tr from-[#00f2fe]/20 via-transparent to-[#fe2c55]/20 rounded-full blur-[130px] pointer-events-none"></div>
-
-    <!-- Scanline Subtle Texture Overlay -->
-    <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none opacity-30"></div>
-
-    <div class="relative z-10 flex flex-col items-center text-center px-4 max-w-sm w-full">
-      <!-- Animated Hologram Logo Box -->
-      <div class="relative mb-6">
-        <!-- Dual Glowing Rings -->
-        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#fe2c55] via-[#00f2fe] to-[#fe2c55] p-[2px] shadow-[0_0_50px_rgba(0,242,254,0.45)] animate-spin" style="animation-duration: 9s;">
-          <div class="w-full h-full bg-[#07090e] rounded-[14px]"></div>
+  <!-- Sheet: เวอร์ชันทั้งหมด -->
+  <div id="versionsModal" role="dialog" aria-modal="true" aria-labelledby="versionsModalTitle">
+    <div id="versionsModalBackdrop"></div>
+    <div class="sheet">
+      <div class="sheet-h">
+        <div class="ic"><svg class="i"><use href="#i-download"/></svg></div>
+        <div>
+          <h3 id="versionsModalTitle">ประวัติเวอร์ชันและไฟล์ติดตั้ง</h3>
+          <p>เวอร์ชันที่รองรับ <span class="version-range-text mono" style="color:var(--primary)">v0.1.0 – v1.0.0</span></p>
         </div>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <svg class="w-9 h-9 text-white drop-shadow-[0_0_12px_rgba(0,242,254,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
-            <polygon points="10 8 15 10 10 12 10 8" fill="#00f2fe" stroke="none" />
-          </svg>
-        </div>
+        <button id="closeVersionsModalBtn" class="icon-btn" aria-label="ปิดหน้าต่าง"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
-
-      <!-- App Title & Cyber Badge -->
-      <div class="flex items-center gap-2 mb-1.5">
-        <span class="font-display font-black text-xl tracking-tight text-white">
-          FlowUltraTech
-        </span>
-        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00f2fe] border border-cyan-500/30">
-          STUDIO
-        </span>
+      <div class="sheet-info">
+        <span>เฉพาะเวอร์ชันที่ยังใช้งานได้ (ต่ำกว่านี้ระบบไม่รองรับ)</span>
+        <span id="versionsCountBadge">กำลังโหลด...</span>
       </div>
-
-      <!-- Status Readout (Cyber HUD style) -->
-      <div class="flex items-center justify-between w-full max-w-[260px] text-[11px] font-mono text-zinc-400 mb-2 mt-4">
-        <span id="loaderStatusText" class="tracking-wide text-cyan-400 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-          INITIALIZING...
-        </span>
-        <span id="loaderPercentText" class="text-zinc-200 font-bold">0%</span>
+      <div id="versionsListContainer">
+        <div class="sk"></div><div class="sk"></div><div class="sk"></div>
       </div>
-
-      <!-- Neon Progress Track & Bar -->
-      <div class="w-full max-w-[260px] h-1.5 bg-zinc-900/90 rounded-full overflow-hidden border border-zinc-800/80 p-[0.5px]">
-        <div id="loaderProgressBar" class="h-full bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] rounded-full transition-all duration-100 ease-out shadow-[0_0_15px_rgba(0,242,254,0.8)]" style="width: 0%"></div>
-      </div>
-
-      <!-- Micro Architecture Subtext -->
-      <div class="mt-4 text-[10px] font-mono tracking-wider text-zinc-500">
-        MULTI-INSTANCE &bull; PROXY ISOLATION &bull; AI SOLVER
+      <div class="sheet-f">
+        <span>รองรับ Windows 10 &amp; 11 (64-bit)</span>
+        <button id="closeVersionsModalFooterBtn" class="btn btn-secondary btn-sm">ปิด</button>
       </div>
     </div>
   </div>
 
-  <!-- Download Toast Feedback -->
-  <div id="downloadToast" class="fixed bottom-6 right-6 z-[130] transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#0e1017]/95 border border-cyan-500/40 shadow-[0_10px_40px_rgba(0,242,254,0.25)] backdrop-blur-xl">
-    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00f2fe] to-[#fe2c55] flex items-center justify-center text-white shadow-md">
-      <svg class="w-4 h-4 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-    </div>
-    <div>
-      <div class="text-xs font-bold text-white">กำลังเริ่มดาวน์โหลด...</div>
-      <div class="text-[11px] text-zinc-400">ระบบกำลังส่งไฟล์ตัวติดตั้ง โปรดรอสักครู่</div>
-    </div>
-  </div>
+  <!-- Icon sprite (lucide-style, stroke เดียวกัน) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+      <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+      <symbol id="i-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+      <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+      <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.7 1.8L21.5 19.5l-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+      <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M19.4 12.6a2 2 0 0 0 0-3.2l-.8-.6V6a2 2 0 0 0-2-2h-2.8l-.6-.8a2 2 0 0 0-3.2 0l-.6.8H6.6a2 2 0 0 0-2 2v2.8l-.8.6a2 2 0 0 0 0 3.2l.8.6V16a2 2 0 0 0 2 2h2.8l.6.8a2 2 0 0 0 3.2 0l.6-.8h2.8a2 2 0 0 0 2-2v-2.8z"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+    </defs>
+  </svg>
 
-  <!-- Modal: Download Versions (ตั้งแต่ ver ที่บังคับ -> ver ล่าสุด) -->
-  <div id="versionsModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 opacity-0 pointer-events-none transition-all duration-300 ease-out" role="dialog" aria-modal="true" aria-labelledby="versionsModalTitle">
-    <!-- Backdrop Blur -->
-    <div id="versionsModalBackdrop" class="absolute inset-0 bg-[#040508]/80 backdrop-blur-xl transition-opacity duration-300"></div>
-
-    <!-- Modal Card Surface -->
-    <div class="relative w-full max-w-2xl bg-[#090b11] border border-zinc-800 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_-10px_rgba(0,242,254,0.15)] overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-all duration-300 ease-out">
-      
-      <!-- Top Neon Header Accent Line -->
-      <div class="h-[2px] w-full bg-gradient-to-r from-transparent via-[#00f2fe] to-transparent"></div>
-
-      <!-- Header: Title + Close Button -->
-      <div class="flex items-center justify-between px-6 py-5 border-b border-zinc-800/80 bg-[#0c0e16]/60">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00f2fe]">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-          </div>
-          <div>
-            <h3 id="versionsModalTitle" class="font-display font-bold text-base sm:text-lg text-white">
-              ประวัติเวอร์ชันและไฟล์ติดตั้ง
-            </h3>
-            <p class="text-xs text-zinc-400 mt-0.5">
-              เวอร์ชันที่รองรับ: <span class="text-cyan-400 font-medium version-range-text">v0.1.0 – v1.0.0</span>
-            </p>
-          </div>
-        </div>
-
-        <button id="closeVersionsModalBtn" class="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-800/80 transition-colors focus:outline-none cursor-pointer" aria-label="ปิดหน้าต่าง">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Info Banner -->
-      <div class="px-6 py-2.5 bg-zinc-900/40 border-b border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-400">
-        <span class="inline-flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          <span>แสดงเวอร์ชันตั้งแต่ขั้นต่ำที่ระบบบังคับจนถึงเวอร์ชันล่าสุด</span>
-        </span>
-        <span id="versionsCountBadge" class="px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 font-mono text-[10px]">กำลังโหลด...</span>
-      </div>
-
-      <!-- Versions List Container -->
-      <div id="versionsListContainer" class="p-6 overflow-y-auto space-y-3 flex-1">
-        <!-- Skeleton Loading placeholder -->
-        <div class="space-y-3 animate-pulse">
-          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
-          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
-          <div class="h-20 bg-zinc-900/60 rounded-2xl border border-zinc-800/50"></div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="px-6 py-4 bg-[#07080d] border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
-        <span>รองรับ Windows 10 & 11 (64-bit)</span>
-        <button id="closeVersionsModalFooterBtn" class="px-4 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800/60 hover:bg-zinc-800 transition cursor-pointer">
-          ปิด
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interactive 60FPS Cyber Canvas Background -->
-  <canvas id="cyberCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-45"></canvas>
-
-  <!-- Ambient Glowing Light Orbs -->
-  <div class="fixed top-[-10%] left-[12%] w-[550px] h-[550px] bg-cyan-500/12 rounded-full blur-[150px] pointer-events-none z-0"></div>
-  <div class="fixed top-[22%] right-[8%] w-[620px] h-[620px] bg-rose-500/10 rounded-full blur-[170px] pointer-events-none z-0"></div>
-  <div class="fixed bottom-[-10%] left-[30%] w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[180px] pointer-events-none z-0"></div>
-
-  <!-- Content Wrapper -->
-  <div class="relative z-10 flex flex-col min-h-screen">
-
-    <!-- Top Navigation Bar: py-2.5 sm:py-3 -->
-    <header class="sticky top-0 z-50 border-b border-zinc-800/60 bg-[#06070a]/85 backdrop-blur-2xl py-2.5 sm:py-3 transition-all">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[58px]">
-        
-        <!-- Brand Logo -->
-        <a href="/" class="flex items-center gap-3.5 group">
-          <div class="relative w-11 h-11 rounded-xl bg-gradient-to-tr from-[#fe2c55] via-zinc-800 to-[#00f2fe] p-[1.5px] shadow-lg shadow-[#00f2fe]/25 group-hover:shadow-[#00f2fe]/50 transition duration-300">
-            <div class="w-full h-full bg-[#090a0f] rounded-[10px] flex items-center justify-center">
-              <svg class="w-5 h-5 text-white transform group-hover:scale-110 transition duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <line x1="8" y1="21" x2="16" y2="21" />
-                <line x1="12" y1="17" x2="12" y2="21" />
-                <polygon points="10 8 15 10 10 12 10 8" fill="currentColor" stroke="none" />
-              </svg>
-            </div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-display font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
-                FlowUltraTech
-              </span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00f2fe] border border-cyan-500/30">
-                Studio
-              </span>
-            </div>
-            <p class="text-[11px] text-zinc-400 leading-none mt-1 hidden sm:block">
-              Multi-Instance & Automation
-            </p>
-          </div>
+  <div class="page">
+    <header class="top">
+      <div class="wrap top-in">
+        <a href="/" class="brand">
+          <img src="/public/logo-mark.png" alt="Studio Live" />
+          <div><b>FlowUltraTech</b><small>Multi-Instance &amp; Automation</small></div>
         </a>
-
-        <!-- Desktop Navigation Links -->
-        <nav class="hidden md:flex items-center gap-1.5 text-xs font-medium text-zinc-300 bg-zinc-950/60 p-1 rounded-xl border border-zinc-800/60">
-          <a href="#features" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">จุดเด่น</a>
-          <a href="#specs" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">สเปกเครื่อง</a>
-          <a href="#guide" class="px-3.5 py-1.5 rounded-lg hover:text-[#00f2fe] hover:bg-zinc-800/60 transition-colors">วิธีเริ่มใช้งาน</a>
+        <nav class="links" aria-label="เมนูหลัก">
+          <a href="#features">จุดเด่น</a>
+          <a href="#specs">สเปกเครื่อง</a>
+          <a href="#guide">วิธีเริ่มใช้งาน</a>
         </nav>
-
-        <!-- Right Quick Download Button -->
-        <div class="flex items-center gap-3">
-          <a href="/api/v1/app/download" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#00f2fe] to-[#4facfe] hover:from-[#4facfe] hover:to-[#00f2fe] text-black font-display font-bold text-xs shadow-md shadow-cyan-500/20 transition duration-300 active:scale-95">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
+        <div class="top-actions">
+          <button id="themeToggle" class="icon-btn" aria-label="สลับธีมมืด/สว่าง">
+            <svg class="i sun"><use href="#i-sun"/></svg><svg class="i moon"><use href="#i-moon"/></svg>
+          </button>
+          <a href="/api/v1/app/download" class="btn btn-primary">
+            <svg class="i"><use href="#i-download"/></svg>
             <span id="navDownloadVer">ดาวน์โหลด v0.1.0</span>
           </a>
         </div>
-
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1">
-
-      <!-- Hero Section: Clean, Punchy, Focused -->
-      <section class="relative pt-16 sm:pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        
-        <!-- Live Status Pill -->
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/90 shadow-xl mb-7 animate-float-slow">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-xs text-zinc-300 font-medium">เวอร์ชันล่าสุด <span class="app-version-tag">v0.1.0</span> • เปิดให้ดาวน์โหลดแล้ว ฟรี ไม่ต้องล็อกอิน</span>
-        </div>
-
-        <!-- Headline -->
-        <h1 class="reveal-on-scroll text-4xl sm:text-6xl lg:text-7xl font-display font-black tracking-tight leading-[1.08] max-w-5xl mx-auto text-white">
-          รัน TikTok LIVE Studio<br />
-          <span class="bg-gradient-to-r from-[#00f2fe] via-[#4facfe] to-[#fe2c55] bg-clip-text text-transparent text-glow-cyan">
-            หลายจอพร้อมกัน แยกเน็ต 100%
-          </span>
-        </h1>
-
-        <!-- Subtitle -->
-        <p class="reveal-on-scroll delay-100 mt-5 text-sm sm:text-base lg:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-          เปิดได้ไม่จำกัดบัญชี แยก Proxy รายจอ ป้องกันโดนแบนกลุ่ม พร้อมระบบ AI ช่วยแก้ Captcha สไลเดอร์อัตโนมัติในตัว ไม่ต้องนั่งเฝ้าจอ
-        </p>
-
-        <!-- Primary CTA Download Button -->
-        <div class="reveal-on-scroll delay-200 mt-9 flex flex-col items-center justify-center gap-4">
-          
-          <div class="gradient-border-btn w-full max-w-md shadow-2xl">
-            <a id="heroDownloadBtn" href="/api/v1/app/download" class="flex items-center justify-center gap-4 w-full py-4 sm:py-5 px-6 rounded-[16px] bg-[#090b10] hover:bg-[#0d1017] text-white transition duration-300 group">
-              <!-- Animated Download Icon -->
-              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#fe2c55] to-[#00f2fe] flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <svg class="w-6 h-6 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-              </div>
-
-              <div class="text-left">
-                <div class="font-display font-bold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
-                  <span>ดาวน์โหลดสำหรับ Windows</span>
-                </div>
-                <div class="text-xs text-zinc-400 mt-0.5">
-                  เวอร์ชันล่าสุด <span class="app-version-tag">v0.1.0</span> • ขนาด <span id="heroFileSize">51.8 MB</span>
-                </div>
-              </div>
-            </a>
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="wrap">
+          <div class="pill rv">
+            <span class="tag"><span class="dot"></span>ล่าสุด</span>
+            <span><span class="app-version-tag mono">v0.1.0</span> พร้อมให้ดาวน์โหลด ฟรี ไม่ต้องล็อกอิน</span>
           </div>
 
-          <!-- Small link to open versions modal -->
-          <div class="flex items-center justify-center -mt-1">
-            <button type="button" class="open-versions-modal-btn inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#00f2fe] transition-colors py-1 px-3 rounded-lg hover:bg-zinc-900/80 border border-transparent hover:border-zinc-800/80 cursor-pointer group">
-              <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#00f2fe] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span>ดูเวอร์ชันทั้งหมด (<span class="version-range-text">v0.1.0 – v1.0.0</span>)</span>
-              <svg class="w-3 h-3 text-zinc-500 group-hover:text-[#00f2fe] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
+          <h1 class="headline rv d1">รัน TikTok LIVE Studio<br /><em>หลายจอพร้อมกัน แยกเน็ต 100%</em></h1>
+          <p class="lead rv d2">เปิดได้ไม่จำกัดบัญชี แยก Proxy รายจอ ป้องกันโดนแบนกลุ่ม พร้อม AI แก้ Captcha สไลเดอร์อัตโนมัติ ไม่ต้องนั่งเฝ้าจอ</p>
 
-          <!-- Trust Badges -->
-          <div class="reveal-on-scroll delay-300 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-zinc-400 mt-1">
-            <span class="inline-flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
-              <span>รองรับ Windows 10 & 11 (64-bit)</span>
-            </span>
-
-            <span class="inline-flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span>ดาวน์โหลดตรงความเร็วสูง</span>
-            </span>
-
-            <span class="inline-flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              <span>ปลอดภัย ไร้ไวรัส 100%</span>
-            </span>
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- 4 Core User Benefits -->
-      <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-12">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
-            KEY ADVANTAGES
-          </span>
-          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
-            ทำไมสตรีมเมอร์ต้องใช้โปรแกรมนี้?
-          </h2>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          
-          <!-- Benefit 1 -->
-          <div class="reveal-on-scroll delay-100 cyber-surface p-6 rounded-2xl">
-            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-[#00f2fe] mb-4">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            </div>
-            <h3 class="font-display font-bold text-base text-white">รันได้ไม่จำกัดจอ</h3>
-            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
-              เปิด TikTok LIVE Studio ได้หลายบัญชีพร้อมกันบนเครื่องเดียว แยกโฟลเดอร์อิสระ ไม่ชนกัน
-            </p>
-          </div>
-
-          <!-- Benefit 2 -->
-          <div class="reveal-on-scroll delay-200 cyber-surface p-6 rounded-2xl">
-            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-[#fe2c55] mb-4">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </div>
-            <h3 class="font-display font-bold text-base text-white">แยกเน็ต Proxy 100%</h3>
-            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
-              ใส่ Proxy แยกรายจอได้อิสระ บัญชีไม่ผูกโยงกัน ลดความเสี่ยงในการโดนแบนกลุ่มได้อย่างเด็ดขาด
-            </p>
-          </div>
-
-          <!-- Benefit 3 -->
-          <div class="reveal-on-scroll delay-300 cyber-surface p-6 rounded-2xl">
-            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-              </svg>
-            </div>
-            <h3 class="font-display font-bold text-base text-white">AI แก้ Captcha ให้เอง</h3>
-            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
-              เมื่อติดสไลเดอร์จิ๊กซอว์ ระบบ AI จะคำนวณและเลื่อนให้เสร็จในเสี้ยววินาที ไม่ต้องนั่งเฝ้าจอทั้งวัน
-            </p>
-          </div>
-
-          <!-- Benefit 4 -->
-          <div class="reveal-on-scroll delay-400 cyber-surface p-6 rounded-2xl">
-            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <h3 class="font-display font-bold text-base text-white">กินสเปกน้อยมาก</h3>
-            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
-              ระบบซ่อนหน้าต่างเบื้องหลัง ช่วยลดภาระ GPU ได้ถึง 85% ทำให้รันได้ 10-20 จอเครื่องก็ยังลื่น
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- System Specs: Simple & Clear -->
-      <section id="specs" class="py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-10">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
-            SYSTEM SPECS
-          </span>
-          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
-            สเปกเครื่องที่รองรับ
-          </h2>
-        </div>
-
-        <div class="reveal-on-scroll delay-150 max-w-4xl mx-auto cyber-surface rounded-2xl overflow-hidden border border-zinc-800/80">
-          <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/70 text-xs sm:text-sm">
-            
-            <div class="p-6">
-              <h4 class="font-display font-bold text-white text-sm mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-zinc-500"></span>
-                คอมทั่วไป (1 - 2 จอ)
-              </h4>
-              <ul class="space-y-2 text-zinc-300 text-xs">
-                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 (64-bit)</li>
-                <li><span class="text-zinc-500">ซีพียู:</span> Core i3 / Ryzen 3</li>
-                <li><span class="text-zinc-500">แรม (RAM):</span> 8 GB</li>
-                <li><span class="text-zinc-500">การ์ดจอ:</span> การ์ดจอทั่วไป / On-board</li>
-              </ul>
-            </div>
-
-            <div class="p-6 bg-cyan-950/15">
-              <h4 class="font-display font-bold text-[#00f2fe] text-sm mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#00f2fe]"></span>
-                แนะนำ (5 - 10 จอ)
-              </h4>
-              <ul class="space-y-2 text-zinc-300 text-xs">
-                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 (64-bit)</li>
-                <li><span class="text-zinc-500">ซีพียู:</span> Core i5 / Ryzen 5</li>
-                <li><span class="text-zinc-500">แรม (RAM):</span> 16 GB</li>
-                <li><span class="text-zinc-500">การ์ดจอ:</span> GTX 1650 / RTX 3050</li>
-              </ul>
-            </div>
-
-            <div class="p-6">
-              <h4 class="font-display font-bold text-rose-400 text-sm mb-3 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                ฟาร์มสตรีม (15+ จอ)
-              </h4>
-              <ul class="space-y-2 text-zinc-300 text-xs">
-                <li><span class="text-zinc-500">ระบบปฏิบัติการ:</span> Windows 10/11 Pro</li>
-                <li><span class="text-zinc-500">ซีพียู:</span> Core i7 / Ryzen 7</li>
-                <li><span class="text-zinc-500">แรม (RAM):</span> 32 GB+</li>
-                <li><span class="text-zinc-500">การ์ดจอ:</span> RTX 3060 ขึ้นไป</li>
-              </ul>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- 3 Simple Steps -->
-      <section id="guide" class="py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-10">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#00f2fe]">
-            HOW TO START
-          </span>
-          <h2 class="text-2xl sm:text-4xl font-display font-black tracking-tight mt-2 text-white">
-            เริ่มต้นใช้งานง่ายๆ ใน 3 ขั้นตอน
-          </h2>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          
-          <div class="reveal-on-scroll delay-100 cyber-surface p-6 rounded-2xl">
-            <span class="font-display text-2xl font-black text-cyan-400">01</span>
-            <h3 class="font-display font-bold text-white text-sm mt-2">ดาวน์โหลดโปรแกรม</h3>
-            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-              กดปุ่มดาวน์โหลดตัวติดตั้งและกดติดตั้งลงในคอมพิวเตอร์ของคุณ
-            </p>
-          </div>
-
-          <div class="reveal-on-scroll delay-200 cyber-surface p-6 rounded-2xl">
-            <span class="font-display text-2xl font-black text-blue-400">02</span>
-            <h3 class="font-display font-bold text-white text-sm mt-2">เพิ่มบัญชีและใส่ Proxy</h3>
-            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-              เปิดโปรแกรม กดเพิ่มบัญชีที่ต้องการสตรีม และใส่ Proxy แยกรายจอ
-            </p>
-          </div>
-
-          <div class="reveal-on-scroll delay-300 cyber-surface p-6 rounded-2xl">
-            <span class="font-display text-2xl font-black text-rose-400">03</span>
-            <h3 class="font-display font-bold text-white text-sm mt-2">เริ่มสตรีมได้ทันที</h3>
-            <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-              กดเปิดสตรีม ระบบจะดูแลเรื่องการแก้แคปช่าและประหยัดเครื่องให้เอง
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- Bottom Download Call-To-Action -->
-      <section class="py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-        <div class="reveal-on-scroll cyber-surface rounded-3xl p-8 sm:p-12 border border-cyan-500/30 glow-cyan relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-rose-500/10 pointer-events-none"></div>
-          
-          <h2 class="text-2xl sm:text-4xl font-display font-black text-white tracking-tight relative z-10">
-            พร้อมเริ่มต้นสตรีมหลายจอแล้วหรือยัง?
-          </h2>
-          <p class="text-zinc-300 text-xs sm:text-sm max-w-lg mx-auto mt-2.5 relative z-10">
-            ดาวน์โหลดโปรแกรมตัวเต็มเวอร์ชันล่าสุดและเริ่มใช้งานได้ทันที
-          </p>
-
-          <div class="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
-            <a href="/api/v1/app/download" class="inline-flex items-center gap-3 px-8 py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-[#00f2fe] to-[#4facfe] hover:from-[#4facfe] hover:to-[#00f2fe] text-black shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition duration-300">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
+          <div class="cta-row rv d3">
+            <a id="heroDownloadBtn" href="/api/v1/app/download" class="btn btn-primary btn-lg">
+              <svg class="i"><use href="#i-download"/></svg>
               <span>ดาวน์โหลดสำหรับ Windows</span>
+              <span class="mono" style="font-size:12px;font-weight:500;opacity:.7"><span id="heroFileSize">51.8 MB</span></span>
             </a>
-            <button type="button" class="open-versions-modal-btn inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-700/60 hover:border-cyan-500/40 transition duration-300 cursor-pointer">
-              <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span>เลือกเวอร์ชันอื่น ๆ</span>
+            <button type="button" class="link-btn open-versions-modal-btn">
+              <svg class="i"><use href="#i-clock"/></svg>
+              <span>ดูเวอร์ชันทั้งหมด (<span class="version-range-text mono">v0.1.0 – v1.0.0</span>)</span>
             </button>
+          </div>
+          <div class="cta-meta rv d3">
+            <span><svg class="i"><use href="#i-shield"/></svg>Windows 10 &amp; 11 (64-bit)</span>
+            <span><svg class="i"><use href="#i-zap"/></svg>ดาวน์โหลดตรงความเร็วสูง</span>
+            <span><svg class="i"><use href="#i-gift"/></svg>ใช้งานฟรี</span>
+          </div>
+
+          <!-- Mock window -->
+          <div class="stage rv d3">
+            <div class="win" id="win">
+              <div class="chip c1"><svg class="i"><use href="#i-sparkles"/></svg><div>AI แก้ Captcha สำเร็จ<small>ใช้เวลา 0.8 วินาที</small></div></div>
+              <div class="chip c2"><svg class="i"><use href="#i-activity"/></svg><div>GPU ลดลง 85%<small>โหมดประหยัดทำงานอยู่</small></div></div>
+              <div class="win-bar"><i></i><i></i><i></i><span>Studio Live · FlowUltraTech</span></div>
+              <div class="win-body">
+                <aside class="w-side">
+                  <div class="it on"><svg class="i"><use href="#i-users"/></svg>บัญชี</div>
+                  <div class="it"><svg class="i"><use href="#i-puzzle"/></svg>Captcha</div>
+                  <div class="it"><svg class="i"><use href="#i-globe"/></svg>Proxy</div>
+                  <div class="it"><svg class="i"><use href="#i-zap"/></svg>ตอบแชทอัตโนมัติ</div>
+                  <div class="it"><svg class="i"><use href="#i-settings"/></svg>ตั้งค่า</div>
+                </aside>
+                <div class="w-main">
+                  <div class="w-title">บัญชีที่กำลังไลฟ์ <small>5 จอ · ทำงานอิสระ</small></div>
+                  <div class="acc"><div class="av">A</div><div class="nm"><b>shop_aom</b><small class="mono">proxy 45.12.x.x · TH</small></div><div class="meter"><i style="width:72%"></i></div><span class="badge b-ok"><span class="dot"></span>ไลฟ์อยู่</span></div>
+                  <div class="acc"><div class="av">B</div><div class="nm"><b>mintbeauty</b><small class="mono">proxy 103.8.x.x · TH</small></div><div class="meter"><i style="width:58%"></i></div><span class="badge b-ok"><span class="dot"></span>ไลฟ์อยู่</span></div>
+                  <div class="acc"><div class="av">C</div><div class="nm"><b>gadget.zone</b><small class="mono">proxy 171.6.x.x · TH</small></div><div class="meter"><i style="width:81%"></i></div><span class="badge b-warn">กำลังแก้ Captcha</span></div>
+                  <div class="acc"><div class="av">D</div><div class="nm"><b>fashion_nok</b><small class="mono">proxy 58.97.x.x · TH</small></div><div class="meter"><i style="width:44%"></i></div><span class="badge b-ok"><span class="dot"></span>ไลฟ์อยู่</span></div>
+                  <div class="acc"><div class="av">E</div><div class="nm"><b>snack_house</b><small class="mono">proxy 110.77.x.x · TH</small></div><div class="meter"><i style="width:63%"></i></div><span class="badge b-ok"><span class="dot"></span>ไลฟ์อยู่</span></div>
+                </div>
+                <aside class="w-panel">
+                  <h6>Captcha Solver</h6>
+                  <div class="puzzle"><div class="piece"></div></div>
+                  <div class="solved"><svg class="i"><use href="#i-shield"/></svg>แก้สำเร็จ</div>
+                  <h6 style="margin-top:6px">ทรัพยากร</h6>
+                  <div class="kv"><span>CPU</span><b class="mono">18%</b></div>
+                  <div class="kv"><span>GPU</span><b class="mono">6%</b></div>
+                  <div class="kv"><span>RAM</span><b class="mono">9.4 GB</b></div>
+                </aside>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats rv">
+            <div class="stat"><b data-count="20" data-suffix="+">0</b><span>จอพร้อมกันบนเครื่องเดียว</span></div>
+            <div class="stat"><b data-count="100" data-suffix="%">0</b><span>แยก Proxy รายจอ</span></div>
+            <div class="stat"><b data-count="85" data-suffix="%">0</b><span>ลดภาระ GPU สูงสุด</span></div>
+            <div class="stat"><b>&lt; 1 วิ</b><span>AI แก้ Captcha</span></div>
           </div>
         </div>
       </section>
 
+      <!-- Features -->
+      <section id="features" class="blk">
+        <div class="wrap">
+          <div class="sec-head rv">
+            <span class="eyebrow">Key advantages</span>
+            <h2 class="sec-h">ทำไมสตรีมเมอร์ต้องใช้โปรแกรมนี้</h2>
+            <p class="sec-p">ออกแบบให้คนไลฟ์ขายของหลายบัญชีทำงานได้ลื่น กวาดตาดูสถานะทุกจอได้ในที่เดียว</p>
+          </div>
+          <div class="bento">
+            <div class="card s4 rv">
+              <div class="ic"><svg class="i"><use href="#i-monitor"/></svg></div>
+              <h3>รันได้ไม่จำกัดจอ</h3>
+              <p>เปิด TikTok LIVE Studio หลายบัญชีพร้อมกันบนเครื่องเดียว แยกโฟลเดอร์อิสระ ไม่ชนกัน</p>
+              <div class="viz proxy-list mono">
+                <div><span class="dot" style="color:var(--ok)"></span><b>instance-01</b><em>isolated</em></div>
+                <div><span class="dot" style="color:var(--ok)"></span><b>instance-02</b><em>isolated</em></div>
+                <div><span class="dot" style="color:var(--ok)"></span><b>instance-03</b><em>isolated</em></div>
+              </div>
+            </div>
+            <div class="card s2 rv d1">
+              <div class="ic"><svg class="i"><use href="#i-sparkles"/></svg></div>
+              <h3>AI แก้ Captcha ให้เอง</h3>
+              <p>ติดสไลเดอร์จิ๊กซอว์เมื่อไหร่ AI คำนวณและเลื่อนให้เสร็จในเสี้ยววินาที</p>
+              <div class="viz"><div class="big">0.8<span style="font-size:20px;color:var(--muted);font-weight:500"> วินาที</span></div></div>
+            </div>
+            <div class="card s3 rv">
+              <div class="ic"><svg class="i"><use href="#i-globe"/></svg></div>
+              <h3>แยกเน็ต Proxy 100%</h3>
+              <p>ใส่ Proxy แยกรายจอได้อิสระ บัญชีไม่ผูกโยงกัน ลดความเสี่ยงโดนแบนกลุ่ม</p>
+              <div class="viz proxy-list mono">
+                <div><b>shop_aom</b><em>45.12.x.x</em></div>
+                <div><b>mintbeauty</b><em>103.8.x.x</em></div>
+              </div>
+            </div>
+            <div class="card s3 rv d1">
+              <div class="ic"><svg class="i"><use href="#i-activity"/></svg></div>
+              <h3>กินสเปกน้อยมาก</h3>
+              <p>ซ่อนหน้าต่างเบื้องหลังเพื่อลดภาระ GPU ได้ถึง 85% รัน 10–20 จอก็ยังลื่น</p>
+              <div class="viz">
+                <div class="gpu">
+                  <i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i>
+                </div>
+                <div class="gpu-cap"><span>ปกติ</span><span style="color:var(--ok)">ประหยัด −85%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Specs -->
+      <section id="specs" class="blk">
+        <div class="wrap">
+          <div class="sec-head rv">
+            <span class="eyebrow">System specs</span>
+            <h2 class="sec-h">สเปกเครื่องที่รองรับ</h2>
+            <p class="sec-p">เลือกให้ตรงกับจำนวนจอที่ต้องการรัน</p>
+          </div>
+          <div class="specs">
+            <div class="spec rv">
+              <h4>คอมทั่วไป</h4><div style="font-size:13px;color:var(--subtle)">1 – 2 จอ</div>
+              <ul>
+                <li><span>ระบบปฏิบัติการ</span><b>Windows 10/11 (64-bit)</b></li>
+                <li><span>ซีพียู</span><b>Core i3 / Ryzen 3</b></li>
+                <li><span>แรม</span><b>8 GB</b></li>
+                <li><span>การ์ดจอ</span><b>On-board ก็พอ</b></li>
+              </ul>
+            </div>
+            <div class="spec rec rv d1">
+              <h4>แนะนำ<span class="rb">ยอดนิยม</span></h4><div style="font-size:13px;color:var(--subtle)">5 – 10 จอ</div>
+              <ul>
+                <li><span>ระบบปฏิบัติการ</span><b>Windows 10/11 (64-bit)</b></li>
+                <li><span>ซีพียู</span><b>Core i5 / Ryzen 5</b></li>
+                <li><span>แรม</span><b>16 GB</b></li>
+                <li><span>การ์ดจอ</span><b>GTX 1650 / RTX 3050</b></li>
+              </ul>
+            </div>
+            <div class="spec rv d2">
+              <h4>ฟาร์มสตรีม</h4><div style="font-size:13px;color:var(--subtle)">15+ จอ</div>
+              <ul>
+                <li><span>ระบบปฏิบัติการ</span><b>Windows 10/11 Pro</b></li>
+                <li><span>ซีพียู</span><b>Core i7 / Ryzen 7</b></li>
+                <li><span>แรม</span><b>32 GB+</b></li>
+                <li><span>การ์ดจอ</span><b>RTX 3060 ขึ้นไป</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Steps -->
+      <section id="guide" class="blk">
+        <div class="wrap">
+          <div class="sec-head rv">
+            <span class="eyebrow">How to start</span>
+            <h2 class="sec-h">เริ่มใช้งานใน 3 ขั้นตอน</h2>
+          </div>
+          <div class="steps">
+            <div class="step rv"><div class="n">1</div><h3>ดาวน์โหลดโปรแกรม</h3><p>กดปุ่มดาวน์โหลดตัวติดตั้งและติดตั้งลงคอมพิวเตอร์ของคุณ</p></div>
+            <div class="step rv d1"><div class="n">2</div><h3>เพิ่มบัญชีและใส่ Proxy</h3><p>เปิดโปรแกรม เพิ่มบัญชีที่ต้องการสตรีม และใส่ Proxy แยกรายจอ</p></div>
+            <div class="step rv d2"><div class="n">3</div><h3>เริ่มสตรีมได้ทันที</h3><p>กดเปิดสตรีม ระบบดูแลเรื่องแก้แคปช่าและประหยัดเครื่องให้เอง</p></div>
+          </div>
+
+          <div class="final rv">
+            <h2>พร้อมเริ่มสตรีมหลายจอแล้วหรือยัง</h2>
+            <p>ดาวน์โหลดโปรแกรมตัวเต็มเวอร์ชันล่าสุดและเริ่มใช้งานได้ทันที</p>
+            <div class="cta-row">
+              <a href="/api/v1/app/download" class="btn btn-primary btn-lg">
+                <svg class="i"><use href="#i-download"/></svg><span>ดาวน์โหลดสำหรับ Windows</span>
+              </a>
+              <button type="button" class="btn btn-secondary btn-lg open-versions-modal-btn">
+                <svg class="i"><use href="#i-clock"/></svg><span>เลือกเวอร์ชันอื่น</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <!-- Footer: Clean, Minimal, Non-developer -->
-    <footer class="border-t border-zinc-800/80 bg-[#06070a]/90 py-8 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-        <div>
-          <span>TikTok LIVE Studio Sandbox • สำหรับ Windows 10 & 11 (64-bit)</span>
-        </div>
-
-        <div class="flex items-center gap-6">
-          <a href="#features" class="hover:text-zinc-300 transition">จุดเด่น</a>
-          <a href="#specs" class="hover:text-zinc-300 transition">สเปก</a>
-          <a href="/backoffice" target="_blank" class="text-zinc-600 hover:text-zinc-400 transition text-[11px]">
-            เข้าสู่ระบบผู้ดูแล
-          </a>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot-in">
+        <span>TikTok LIVE Studio Sandbox · สำหรับ Windows 10 &amp; 11 (64-bit)</span>
+        <nav>
+          <a href="#features">จุดเด่น</a>
+          <a href="#specs">สเปก</a>
+          <a href="/backoffice" target="_blank" style="opacity:.7">เข้าสู่ระบบผู้ดูแล</a>
+        </nav>
       </div>
     </footer>
-
   </div>
 
-  <!-- Interactive 60FPS Cyber Canvas Script (Preserved VFX) -->
   <script>
-    (function() {
-      const canvas = document.getElementById('cyberCanvas');
-      const ctx = canvas.getContext('2d');
-      let width, height;
-      let particles = [];
-      const particleCount = 45;
-
-      function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      }
-
-      class Particle {
-        constructor() {
-          this.reset();
-        }
-        reset() {
-          this.x = Math.random() * width;
-          this.y = Math.random() * height;
-          this.vx = (Math.random() - 0.5) * 0.4;
-          this.vy = (Math.random() - 0.5) * 0.4;
-          this.size = Math.random() * 2 + 1;
-          this.color = Math.random() > 0.4 ? 'rgba(0, 242, 254, ' : 'rgba(254, 44, 85, ';
-          this.alpha = Math.random() * 0.5 + 0.1;
-        }
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-          if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
-            this.reset();
-          }
-        }
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-          ctx.fillStyle = this.color + this.alpha + ')';
-          ctx.fill();
-        }
-      }
-
-      function init() {
-        resize();
-        particles = [];
-        for (let i = 0; i < particleCount; i++) {
-          particles.push(new Particle());
-        }
-      }
-
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 120) {
-              ctx.beginPath();
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = `rgba(0, 242, 254, ${0.12 * (1 - dist / 120)})`;
-              ctx.lineWidth = 0.8;
-              ctx.stroke();
-            }
-          }
-        }
-
-        particles.forEach(p => {
-          p.update();
-          p.draw();
-        });
-
-        requestAnimationFrame(animate);
-      }
-
-      window.addEventListener('resize', resize);
-      init();
-      animate();
-    })();
-
-    // Page Load Transition Logic (Cyber Intro Reveal)
-    (function() {
-      const loader = document.getElementById('pageLoader');
-      const bar = document.getElementById('loaderProgressBar');
-      const percent = document.getElementById('loaderPercentText');
-      const status = document.getElementById('loaderStatusText');
-      if (!loader) return;
-
-      let progress = 0;
-      const steps = [
-        { at: 20, text: 'LOADING ASSETS...' },
-        { at: 48, text: 'INITIALIZING PROXY ENGINE...' },
-        { at: 75, text: 'CONFIGURING AI CAPTCHA SOLVER...' },
-        { at: 96, text: 'SYSTEM ARMED ✓' }
-      ];
-
-      const timer = setInterval(() => {
-        progress += Math.floor(Math.random() * 12) + 10;
-        if (progress > 100) progress = 100;
-
-        if (bar) bar.style.width = progress + '%';
-        if (percent) percent.innerText = progress + '%';
-
-        for (let i = steps.length - 1; i >= 0; i--) {
-          if (progress >= steps[i].at && status) {
-            status.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${progress >= 96 ? 'bg-emerald-400' : 'bg-cyan-400 animate-ping'}"></span> ${steps[i].text}`;
-            if (progress >= 96) {
-              status.className = 'tracking-wide text-emerald-400 flex items-center gap-1.5 font-bold';
-            }
-            break;
-          }
-        }
-
-        if (progress >= 100) {
-          clearInterval(timer);
-          setTimeout(() => {
-            loader.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
-            setTimeout(() => {
-              loader.style.display = 'none';
-            }, 700);
-          }, 140);
-        }
-      }, 40);
-
-      // Failsafe exit in case of background tab throttling or delay
-      setTimeout(() => {
-        if (loader && loader.style.display !== 'none') {
-          loader.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
-          setTimeout(() => { loader.style.display = 'none'; }, 700);
-        }
-      }, 1400);
-    })();
-
-    // Download Feedback Toast & Delegation
-    let _downloadToastTimer = null;
-    function showDownloadToast() {
-      const toast = document.getElementById('downloadToast');
-      if (!toast) return;
-      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-      clearTimeout(_downloadToastTimer);
-      _downloadToastTimer = setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-      }, 3500);
-    }
-
-    document.addEventListener('click', (e) => {
-      const downloadLink = e.target.closest('a[href*="/api/v1/app/download"]');
-      if (downloadLink) {
-        showDownloadToast();
-      }
+    // ธีม
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('fut-theme', next); } catch (e) {}
     });
 
-    // Versions Modal State & Handlers
-    let cachedReleasesData = null;
-
-    function openVersionsModal() {
-      const modal = document.getElementById('versionsModal');
-      if (!modal) return;
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      const box = modal.querySelector('.max-w-2xl');
-      if (box) {
-        box.classList.remove('scale-95');
-        box.classList.add('scale-100');
-      }
-      document.body.style.overflow = 'hidden';
-
-      if (!cachedReleasesData) {
-        fetchPublicReleases();
-      } else {
-        renderReleasesList(cachedReleasesData);
-      }
+    // Toast ตอนกดดาวน์โหลด
+    var _toastTimer = null;
+    function showDownloadToast() {
+      var t = document.getElementById('downloadToast');
+      t.classList.add('show');
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3500);
     }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('a[href*="/api/v1/app/download"]')) showDownloadToast();
+    });
 
+    // Versions sheet
+    var cachedReleasesData = null;
+    function openVersionsModal() {
+      document.getElementById('versionsModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (!cachedReleasesData) fetchPublicReleases(); else renderReleasesList(cachedReleasesData);
+    }
     function closeVersionsModal() {
-      const modal = document.getElementById('versionsModal');
-      if (!modal) return;
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      const box = modal.querySelector('.max-w-2xl');
-      if (box) {
-        box.classList.remove('scale-100');
-        box.classList.add('scale-95');
-      }
+      document.getElementById('versionsModal').classList.remove('open');
       document.body.style.overflow = '';
     }
-
-    // Modal Trigger Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.open-versions-modal-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          openVersionsModal();
-        });
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.open-versions-modal-btn').forEach(function (b) {
+        b.addEventListener('click', function (e) { e.preventDefault(); openVersionsModal(); });
       });
-
-      const closeBtn = document.getElementById('closeVersionsModalBtn');
-      if (closeBtn) closeBtn.addEventListener('click', closeVersionsModal);
-
-      const footerCloseBtn = document.getElementById('closeVersionsModalFooterBtn');
-      if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeVersionsModal);
-
-      const backdrop = document.getElementById('versionsModalBackdrop');
-      if (backdrop) backdrop.addEventListener('click', closeVersionsModal);
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closeVersionsModal();
-        }
+      ['closeVersionsModalBtn', 'closeVersionsModalFooterBtn', 'versionsModalBackdrop'].forEach(function (id) {
+        document.getElementById(id).addEventListener('click', closeVersionsModal);
       });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeVersionsModal(); });
     });
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function updateVersionLabels(minVer, latestVer) {
       if (minVer && latestVer) {
-        const rangeText = `v${minVer} – v${latestVer}`;
-        document.querySelectorAll('.version-range-text').forEach(el => {
-          el.innerText = rangeText;
-        });
+        document.querySelectorAll('.version-range-text').forEach(function (el) { el.innerText = 'v' + minVer + ' – v' + latestVer; });
       }
       if (latestVer) {
-        document.querySelectorAll('.app-version-tag').forEach(el => {
-          el.innerText = `v${latestVer}`;
-        });
-        const navVer = document.getElementById('navDownloadVer');
-        if (navVer) navVer.innerText = `ดาวน์โหลด v${latestVer}`;
+        document.querySelectorAll('.app-version-tag').forEach(function (el) { el.innerText = 'v' + latestVer; });
+        var nav = document.getElementById('navDownloadVer');
+        if (nav) nav.innerText = 'ดาวน์โหลด v' + latestVer;
       }
     }
 
+    function cmpVer(a, b) {
+      var x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+      for (var i = 0; i < 3; i++) { var d = (x[i] || 0) - (y[i] || 0); if (d) return d; }
+      return 0;
+    }
+    var showOlder = false;
+    function relHtml(rel) {
+      var isLatest = Boolean(rel.isLatest), isMin = Boolean(rel.isMinRequired);
+      var size = rel.fileSize ? (rel.fileSize / 1048576).toFixed(1) : '51.8';
+      var date = rel.publishedAt ? new Date(rel.publishedAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      return '<div class="rel' + (isLatest ? ' latest' : '') + '">' +
+        '<div><div class="rv-t"><span class="ver">v' + escapeHtml(rel.version) + '</span>' +
+        (isLatest ? '<span class="badge b-ok"><span class="dot"></span>ล่าสุด</span>' : '') +
+        (isMin ? '<span class="badge b-warn">เก่าสุดที่ยังใช้ได้</span>' : '') +
+        '<span class="meta mono">' + size + ' MB' + (date ? ' · ' + date : '') + '</span></div>' +
+        '<p>' + escapeHtml(rel.description || rel.title || ('ไฟล์ติดตั้ง FlowUltraTech v' + rel.version)) + '</p></div>' +
+        '<a href="' + escapeHtml(rel.downloadUrl) + '" class="btn btn-sm ' + (isLatest ? 'btn-primary' : 'btn-secondary') + '">' +
+        '<svg class="i"><use href="#i-download"/></svg><span>ดาวน์โหลด</span></a></div>';
+    }
     function renderReleasesList(data) {
-      const container = document.getElementById('versionsListContainer');
-      const countBadge = document.getElementById('versionsCountBadge');
-      if (!container) return;
-
-      if (countBadge && data.releases) {
-        countBadge.innerText = `${data.releases.length} เวอร์ชันพร้อมใช้งาน`;
-      }
-
-      if (!data.releases || data.releases.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-10 text-xs text-zinc-400">
-            ไม่พบเวอร์ชันที่รองรับในขณะนี้
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = data.releases.map(rel => {
-        const isLatest = Boolean(rel.isLatest);
-        const isMinRequired = Boolean(rel.isMinRequired);
-        const sizeMB = rel.fileSize ? (rel.fileSize / (1024 * 1024)).toFixed(1) : '51.8';
-        const dateStr = rel.publishedAt ? new Date(rel.publishedAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-
-        return `
-          <div class="p-4 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800/40 border ${isLatest ? 'border-cyan-500/40 shadow-[0_0_25px_-5px_rgba(0,242,254,0.15)] bg-cyan-950/10' : 'border-zinc-800/80'} transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-display font-bold text-base text-white tracking-tight">v${escapeHtml(rel.version)}</span>
-                ${isLatest ? `
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    ล่าสุด
-                  </span>
-                ` : ''}
-                ${isMinRequired ? `
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
-                    ขั้นต่ำที่บังคับ
-                  </span>
-                ` : ''}
-                <span class="text-xs text-zinc-500">• ${sizeMB} MB</span>
-                ${dateStr ? `<span class="text-xs text-zinc-500">• ${dateStr}</span>` : ''}
-              </div>
-              <p class="text-xs text-zinc-400 leading-relaxed">
-                ${escapeHtml(rel.description || rel.title || `ไฟล์ติดตั้ง FlowUltraTech v${rel.version}`)}
-              </p>
-            </div>
-
-            <a href="${rel.downloadUrl}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${isLatest ? 'bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-black font-bold shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/40' : 'bg-zinc-800/90 hover:bg-zinc-700 text-white font-medium border border-zinc-700/60'} text-xs transition duration-200 shrink-0 active:scale-95">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>ดาวน์โหลด</span>
-            </a>
-          </div>
-        `;
-      }).join('');
+      var c = document.getElementById('versionsListContainer');
+      var badge = document.getElementById('versionsCountBadge');
+      // เฉพาะรุ่นที่ยังใช้ได้: ตั้งแต่เวอร์ชันขั้นต่ำที่บังคับ ถึงล่าสุด
+      var list = (data.releases || []).filter(function (r) {
+        return (!data.minRequiredVersion || cmpVer(r.version, data.minRequiredVersion) >= 0) &&
+               (!data.latestVersion || cmpVer(r.version, data.latestVersion) <= 0);
+      });
+      if (badge) badge.innerText = list.length + ' เวอร์ชันที่ใช้ได้';
+      if (!list.length) { c.innerHTML = '<div class="empty">ไม่พบเวอร์ชันที่รองรับในขณะนี้</div>'; return; }
+      var main = list.slice(0, 3), older = list.slice(3);
+      c.innerHTML = main.map(relHtml).join('') +
+        (older.length ? (showOlder ? older.map(relHtml).join('') :
+          '<button type="button" class="btn btn-secondary" id="showOlderBtn">แสดงเวอร์ชันเก่าที่ยังใช้ได้ (' + older.length + ')</button>') : '');
+      var ob = document.getElementById('showOlderBtn');
+      if (ob) ob.addEventListener('click', function () { showOlder = true; renderReleasesList(data); });
     }
 
     function fetchPublicReleases() {
-      const container = document.getElementById('versionsListContainer');
-      fetch('/api/v1/app/releases')
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.success && Array.isArray(data.releases)) {
-            cachedReleasesData = data;
-            updateVersionLabels(data.minRequiredVersion, data.latestVersion);
-            renderReleasesList(data);
-          } else {
-            if (container) {
-              container.innerHTML = `
-                <div class="text-center py-10 text-xs text-zinc-400">
-                  ไม่สามารถโหลดรายการเวอร์ชันได้ในขณะนี้
-                </div>
-              `;
-            }
-          }
-        })
-        .catch(() => {
-          if (container) {
-            container.innerHTML = `
-              <div class="text-center py-10 text-xs text-zinc-400">
-                เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
-              </div>
-            `;
-          }
-        });
+      var c = document.getElementById('versionsListContainer');
+      fetch('/api/v1/app/releases').then(function (r) { return r.json(); }).then(function (data) {
+        if (data && data.success && Array.isArray(data.releases)) {
+          cachedReleasesData = data;
+          updateVersionLabels(data.minRequiredVersion, data.latestVersion);
+          renderReleasesList(data);
+        } else {
+          c.innerHTML = '<div class="empty">ไม่สามารถโหลดรายการเวอร์ชันได้ในขณะนี้</div>';
+        }
+      }).catch(function () {
+        c.innerHTML = '<div class="empty">เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ ลองใหม่อีกครั้ง<br><br><button class="btn btn-secondary btn-sm" onclick="fetchPublicReleases()">ลองใหม่</button></div>';
+      });
     }
-
-    // Prefetch Releases Metadata on Load
     fetchPublicReleases();
 
-    // Fetch Latest Release for Hero File Size & Metadata
-    fetch('/api/v1/app/latest-release')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.release) {
-          if (data.release.fileSize) {
-            const sizeMB = (data.release.fileSize / (1024 * 1024)).toFixed(1);
-            const el = document.getElementById('heroFileSize');
-            if (el) el.innerText = `${sizeMB} MB`;
-          }
-          if (data.release.version) {
-            document.querySelectorAll('.app-version-tag').forEach(el => {
-              el.innerText = `v${data.release.version}`;
-            });
-            const navVer = document.getElementById('navDownloadVer');
-            if (navVer) navVer.innerText = `ดาวน์โหลด v${data.release.version}`;
-          }
+    fetch('/api/v1/app/latest-release').then(function (r) { return r.json(); }).then(function (data) {
+      if (data && data.release) {
+        if (data.release.fileSize) {
+          var el = document.getElementById('heroFileSize');
+          if (el) el.innerText = (data.release.fileSize / 1048576).toFixed(1) + ' MB';
         }
-      })
-      .catch(() => {});
-
-    // Scroll Reveal & Neon Scroll Progress Logic
-    (function() {
-      const scrollBar = document.getElementById('scrollProgressBar');
-
-      // Update Scroll Progress Bar
-      function updateScrollProgress() {
-        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        if (docHeight > 0 && scrollBar) {
-          const progress = (scrollTop / docHeight) * 100;
-          scrollBar.style.width = progress + '%';
-        }
+        if (data.release.version) updateVersionLabels(null, data.release.version);
       }
-      window.addEventListener('scroll', updateScrollProgress, { passive: true });
-      updateScrollProgress();
+    }).catch(function () {});
 
-      // Intersection Observer for Smooth Scroll Reveals
-      const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      }, {
-        threshold: 0.08,
-        rootMargin: '0px 0px -40px 0px'
+    // Progress bar
+    var bar = document.getElementById('progress');
+    function onScroll() {
+      var h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+    // Reveal + count-up
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('in'); io.unobserve(e.target);
+        e.target.querySelectorAll('[data-count]').forEach(countUp);
       });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
+    function countUp(el) {
+      var to = +el.dataset.count, suf = el.dataset.suffix || '', t0 = performance.now();
+      (function tick(now) {
+        var p = Math.min((now - t0) / 1200, 1), v = Math.round(to * (1 - Math.pow(1 - p, 4)));
+        el.textContent = v + (p === 1 ? suf : '');
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+    // กัน content ไม่โผล่ถ้า observer ช้า
+    setTimeout(function () { document.querySelectorAll('.rv').forEach(function (el) { var r = el.getBoundingClientRect(); if (r.top < innerHeight) { el.classList.add('in'); el.querySelectorAll('[data-count]').forEach(countUp); } }); }, 600);
 
-      function observeElements() {
-        document.querySelectorAll('.reveal-on-scroll').forEach(el => {
-          revealObserver.observe(el);
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', observeElements);
-      } else {
-        observeElements();
-      }
-
-      // Trigger initial visible elements after pageLoader transition completes
-      setTimeout(() => {
-        document.querySelectorAll('.reveal-on-scroll').forEach(el => {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < window.innerHeight) {
-            el.classList.add('is-visible');
-          }
-        });
-      }, 400);
-    })();
+    // Tilt หน้าต่างแอปตามเมาส์ + spotlight การ์ด
+    var win = document.getElementById('win');
+    if (win && matchMedia('(hover:hover)').matches) {
+      var stage = win.parentElement;
+      stage.addEventListener('mousemove', function (e) {
+        var r = stage.getBoundingClientRect();
+        win.style.setProperty('--ry', (((e.clientX - r.left) / r.width - .5) * 6).toFixed(2) + 'deg');
+        win.style.setProperty('--rx', (6 - ((e.clientY - r.top) / r.height - .5) * 5).toFixed(2) + 'deg');
+      });
+      stage.addEventListener('mouseleave', function () { win.style.setProperty('--ry', '0deg'); win.style.setProperty('--rx', '6deg'); });
+    }
+    document.querySelectorAll('.card').forEach(function (c) {
+      c.addEventListener('mousemove', function (e) {
+        var r = c.getBoundingClientRect();
+        c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+    // GPU bars: ค่าแตกต่างกันต่อแท่ง
+    document.querySelectorAll('.gpu').forEach(function (g) {
+      var normal = [100, 92, 100, 88, 96, 100];
+      g.innerHTML = normal.map(function (n) {
+        return '<i style="--h:' + n + '%;position:relative"><i class="lo" style="position:absolute;left:0;right:0;bottom:0;--l:15%;height:15%"></i></i>';
+      }).join('');
+    });
   </script>
 </body>
 </html>
