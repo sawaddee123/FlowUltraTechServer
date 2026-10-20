@@ -171,9 +171,9 @@
     .link-btn:hover { color: var(--primary); background: var(--primary-soft); }
 
     /* ───────── Mock app window (จุดเด่นของหน้า) ───────── */
-    .stage { margin-top: 64px; perspective: 1600px; }
+    .stage { margin-top: 110px; margin-bottom: 70px; perspective: 1600px; position: relative; }
     .win {
-      position: relative; margin: 0 auto; max-width: 1040px; text-align: left;
+      position: relative; z-index: 1; margin: 0 auto; max-width: 1040px; text-align: left;
       border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-big), inset 0 0 0 1px var(--line);
       transform: rotateX(var(--rx, 6deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d;
       transition: transform .25s cubic-bezier(.25,1,.5,1); overflow: hidden;
@@ -222,10 +222,18 @@
       animation: floaty 6s ease-in-out infinite;
     }
     .chip .i { font-size: 18px; color: var(--primary); } .chip small { display: block; font-weight: 400; color: var(--subtle); font-size: 11px; line-height: 1.2; }
-    .chip.c1 { top: 70px; left: -22px; } .chip.c2 { bottom: 40px; right: -18px; animation-delay: -3s; } .chip.c2 .i { color: var(--ok); }
+    .chip.c1 { top: -64px; left: 4%; } .chip.c2 { bottom: -64px; right: 4%; animation-delay: -3s; } .chip.c2 .i { color: var(--ok); }
     @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    @media (max-width: 1100px) { .chip.c1 { left: 8px; } .chip.c2 { right: 8px; } }
-    @media (max-width: 600px) { .chip { display: none; } }
+        @media (max-width: 600px) { .chip { display: none; } }
+
+    #fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: .7; }
+    .cursor-glow { position: fixed; left: 0; top: 0; width: 520px; height: 520px; margin: -260px 0 0 -260px; z-index: 0; pointer-events: none; border-radius: 50%;
+      background: radial-gradient(closest-side, var(--glow), transparent); opacity: .55; transform: translate3d(var(--cx, -999px), var(--cy, -999px), 0); will-change: transform; }
+    .orbit { position: absolute; left: 50%; top: 50%; width: 760px; height: 760px; margin: -380px 0 0 -380px; transform-style: preserve-3d; pointer-events: none; z-index: 0; }
+    .orbit i { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--primary); opacity: .22; animation: spin3d 22s linear infinite; }
+    .orbit i + i { inset: 70px; opacity: .16; border-style: dashed; animation-duration: 30s; animation-direction: reverse; }
+    @keyframes spin3d { from { transform: rotateX(72deg) rotateZ(0deg); } to { transform: rotateX(72deg) rotateZ(360deg); } }
+    @media (max-width: 700px) { .orbit { display: none; } }
 
     /* ───────── Stats strip ───────── */
     .stats { margin-top: 72px; display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
@@ -356,6 +364,8 @@
 <body>
   <div id="progress"></div>
   <div class="bg-fx" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <!-- Toast -->
   <div id="downloadToast" role="status">
@@ -444,7 +454,7 @@
           </div>
 
           <h1 class="headline rv d1">รัน TikTok LIVE Studio<br /><em>หลายจอพร้อมกัน แยกเน็ต 100%</em></h1>
-          <p class="lead rv d2">เปิดได้ไม่จำกัดบัญชี แยก Proxy รายจอ ป้องกันโดนแบนกลุ่ม พร้อม AI แก้ Captcha สไลเดอร์อัตโนมัติ ไม่ต้องนั่งเฝ้าจอ</p>
+          <p class="lead rv d2">เปิดได้หลายบัญชี แยก Proxy รายจอ ป้องกันโดนแบนกลุ่ม พร้อม AI แก้ Captcha สไลเดอร์อัตโนมัติ ไม่ต้องนั่งเฝ้าจอ</p>
 
           <div class="cta-row rv d3">
             <a id="heroDownloadBtn" href="/api/v1/app/download" class="btn btn-primary btn-lg">
@@ -459,15 +469,16 @@
           </div>
           <div class="cta-meta rv d3">
             <span><svg class="i"><use href="#i-shield"/></svg>Windows 10 &amp; 11 (64-bit)</span>
-            <span><svg class="i"><use href="#i-zap"/></svg>ดาวน์โหลดตรงความเร็วสูง</span>
+            <span><svg class="i"><use href="#i-zap"/></svg>ดาวน์โหลดตรงจากเซิร์ฟเวอร์</span>
             <span><svg class="i"><use href="#i-gift"/></svg>ใช้งานฟรี</span>
           </div>
 
           <!-- Mock window -->
           <div class="stage rv d3">
+            <div class="orbit" aria-hidden="true"><i></i><i></i></div>
+            <div class="chip c1"><svg class="i"><use href="#i-sparkles"/></svg><div>AI แก้ Captcha สำเร็จ<small>ทำงานอัตโนมัติ</small></div></div>
+            <div class="chip c2"><svg class="i"><use href="#i-activity"/></svg><div>โหมดประหยัด GPU<small>ทำงานอยู่เบื้องหลัง</small></div></div>
             <div class="win" id="win">
-              <div class="chip c1"><svg class="i"><use href="#i-sparkles"/></svg><div>AI แก้ Captcha สำเร็จ<small>ใช้เวลา 0.8 วินาที</small></div></div>
-              <div class="chip c2"><svg class="i"><use href="#i-activity"/></svg><div>GPU ลดลง 85%<small>โหมดประหยัดทำงานอยู่</small></div></div>
               <div class="win-bar"><i></i><i></i><i></i><span>Studio Live · FlowUltraTech</span></div>
               <div class="win-body">
                 <aside class="w-side">
@@ -499,10 +510,10 @@
           </div>
 
           <div class="stats rv">
-            <div class="stat"><b data-count="20" data-suffix="+">0</b><span>จอพร้อมกันบนเครื่องเดียว</span></div>
-            <div class="stat"><b data-count="100" data-suffix="%">0</b><span>แยก Proxy รายจอ</span></div>
-            <div class="stat"><b data-count="85" data-suffix="%">0</b><span>ลดภาระ GPU สูงสุด</span></div>
-            <div class="stat"><b>&lt; 1 วิ</b><span>AI แก้ Captcha</span></div>
+            <div class="stat"><b>หลายจอ</b><span>รันพร้อมกันบนเครื่องเดียว</span></div>
+            <div class="stat"><b>แยกอิสระ</b><span>Proxy และข้อมูลรายบัญชี</span></div>
+            <div class="stat"><b>AI</b><span>ช่วยแก้ Captcha สไลเดอร์</span></div>
+            <div class="stat"><b>ประหยัด</b><span>โหมดลดภาระ GPU</span></div>
           </div>
         </div>
       </section>
@@ -518,7 +529,7 @@
           <div class="bento">
             <div class="card s4 rv">
               <div class="ic"><svg class="i"><use href="#i-monitor"/></svg></div>
-              <h3>รันได้ไม่จำกัดจอ</h3>
+              <h3>รันหลายจอพร้อมกัน</h3>
               <p>เปิด TikTok LIVE Studio หลายบัญชีพร้อมกันบนเครื่องเดียว แยกโฟลเดอร์อิสระ ไม่ชนกัน</p>
               <div class="viz proxy-list mono">
                 <div><span class="dot" style="color:var(--ok)"></span><b>instance-01</b><em>isolated</em></div>
@@ -529,8 +540,8 @@
             <div class="card s2 rv d1">
               <div class="ic"><svg class="i"><use href="#i-sparkles"/></svg></div>
               <h3>AI แก้ Captcha ให้เอง</h3>
-              <p>ติดสไลเดอร์จิ๊กซอว์เมื่อไหร่ AI คำนวณและเลื่อนให้เสร็จในเสี้ยววินาที</p>
-              <div class="viz"><div class="big">0.8<span style="font-size:20px;color:var(--muted);font-weight:500"> วินาที</span></div></div>
+              <p>ติดสไลเดอร์จิ๊กซอว์เมื่อไหร่ AI คำนวณและเลื่อนให้โดยอัตโนมัติ</p>
+              <div class="viz"><div class="solved"><svg class="i"><use href="#i-shield"/></svg>แก้สำเร็จอัตโนมัติ</div></div>
             </div>
             <div class="card s3 rv">
               <div class="ic"><svg class="i"><use href="#i-globe"/></svg></div>
@@ -544,12 +555,12 @@
             <div class="card s3 rv d1">
               <div class="ic"><svg class="i"><use href="#i-activity"/></svg></div>
               <h3>กินสเปกน้อยมาก</h3>
-              <p>ซ่อนหน้าต่างเบื้องหลังเพื่อลดภาระ GPU ได้ถึง 85% รัน 10–20 จอก็ยังลื่น</p>
+              <p>ซ่อนหน้าต่างเบื้องหลังเพื่อลดภาระ GPU ได้สูงสุด 85% (ขึ้นกับเครื่อง)</p>
               <div class="viz">
                 <div class="gpu">
                   <i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i><i style="--h:100%"></i>
                 </div>
-                <div class="gpu-cap"><span>ปกติ</span><span style="color:var(--ok)">ประหยัด −85%</span></div>
+                <div class="gpu-cap"><span>ปกติ</span><span style="color:var(--ok)">โหมดประหยัด</span></div>
               </div>
             </div>
           </div>
@@ -802,6 +813,36 @@
         c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
       });
     });
+    // VFX: เครือข่ายอนุภาคเบาๆ ตอบสนองเมาส์ (หยุดเมื่อแท็บซ่อน / reduced-motion)
+    (function () {
+      var cv = document.getElementById('fx'), g = cv.getContext('2d');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { cv.remove(); return; }
+      var W, H, P = [], mx = -999, my = -999, dpr = Math.min(devicePixelRatio || 1, 2), raf;
+      function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+      var col = css('--primary');
+      function size() { W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        var n = Math.min(70, Math.round(W * H / 22000)); P = []; for (var i = 0; i < n; i++) P.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .35, vy: (Math.random() - .5) * .35, z: Math.random() * .8 + .4 }); }
+      addEventListener('resize', size); size();
+      addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; var cgl = document.getElementById('cursorGlow'); cgl.style.setProperty('--cx', e.clientX + 'px'); cgl.style.setProperty('--cy', e.clientY + 'px'); }, { passive: true });
+      new MutationObserver(function () { col = css('--primary'); }).observe(document.documentElement, { attributes: true });
+      function frame() {
+        g.clearRect(0, 0, W, H); g.fillStyle = col; g.strokeStyle = col;
+        for (var i = 0; i < P.length; i++) {
+          var a = P[i], dx = a.x - mx, dy = a.y - my, d2 = dx * dx + dy * dy;
+          if (d2 < 14000) { var f = (1 - d2 / 14000) * .6; a.x += dx * f * .03; a.y += dy * f * .03; }
+          a.x += a.vx * a.z; a.y += a.vy * a.z;
+          if (a.x < 0) a.x = W; else if (a.x > W) a.x = 0; if (a.y < 0) a.y = H; else if (a.y > H) a.y = 0;
+          g.globalAlpha = .55 * a.z; g.beginPath(); g.arc(a.x, a.y, 1.4 * a.z, 0, 6.283); g.fill();
+          for (var j = i + 1; j < P.length; j++) {
+            var b = P[j], x = a.x - b.x, y = a.y - b.y, dd = x * x + y * y;
+            if (dd < 12000) { g.globalAlpha = .18 * (1 - dd / 12000); g.lineWidth = .7; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
+          }
+        }
+        raf = requestAnimationFrame(frame);
+      }
+      frame();
+      document.addEventListener('visibilitychange', function () { if (document.hidden) cancelAnimationFrame(raf); else frame(); });
+    })();
     // GPU bars: ค่าแตกต่างกันต่อแท่ง
     document.querySelectorAll('.gpu').forEach(function (g) {
       var normal = [100, 92, 100, 88, 96, 100];
